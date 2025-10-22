@@ -1,0 +1,29 @@
+function [coordinates_x, coordinates_y, angle_wire_pulley] = calc_coordinate_for_plot(q,r,L_link)
+
+    for i = 1:size(q,1)
+        general_q = q(i,1:10).';
+        coordinates_x(i,1) = q(i,1); %CFL_origin
+        coordinates_y(i,1) = q(i,2);
+        coordinates_x(i,2) = coordinates_x(i,1) + L_link(6)*sin(q(i,5)); %hip
+        coordinates_y(i,2) = coordinates_y(i,1) - L_link(6)*cos(q(i,5));
+        coordinates_x(i,3) = coordinates_x(i,2) + L_link(1)*sin(q(i,5)+q(i,6)); %knee
+        coordinates_y(i,3) = coordinates_y(i,2) - L_link(1)*cos(q(i,5)+q(i,6));
+        coordinates_x(i,4) = coordinates_x(i,3) + L_link(2)*sin(q(i,5)+q(i,6)+q(i,7)); %ankle
+        coordinates_y(i,4) = coordinates_y(i,3) - L_link(2)*cos(q(i,5)+q(i,6)+q(i,7));
+        coordinates_x(i,5) = coordinates_x(i,4) + L_link(3)*sin(q(i,5)+q(i,6)+q(i,7)+q(i,8)); %toe
+        coordinates_y(i,5) = coordinates_y(i,4) - L_link(3)*cos(q(i,5)+q(i,6)+q(i,7)+q(i,8));
+        coordinates_x(i,6) = q(i,1) + q(i,10)*sin(q(i,9)); %CFLT branching point
+        coordinates_y(i,6) = q(i,2) - q(i,10)*cos(q(i,9));
+        coordinates_x(i,7) = q(i,3); %Y shaped
+        coordinates_y(i,7) = q(i,4);
+        temp = calc_coordinate_M3_to_pulley(L_link,general_q);
+        coordinates_x(i,8) = temp(1,1); %pulley
+        coordinates_y(i,8) = temp(2,1);
+        coordinates_x(i,9) = q(i,7); %CFL origin
+        coordinates_y(i,9) = q(i,8);
+        coordinates_x(i,10) = coordinates_x(i,2) + L_link(4)*sin(q(i,5)+q(i,6)); %4th trochanter
+        coordinates_y(i,10) = coordinates_y(i,2) - L_link(4)*cos(q(i,5)+q(i,6));
+        coordinates_x(i,11) = coordinates_x(i,2) + L_link(5)*sin(q(i,5)+q(i,6)); %GE_origin
+        coordinates_y(i,11) = coordinates_y(i,2) - L_link(5)*cos(q(i,5)+q(i,6));
+        angle_wire_pulley(i) = calc_angle_wire_pulley(L_link,general_q);
+    end
