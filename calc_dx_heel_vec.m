@@ -1,3 +1,5 @@
+%踵の速度ベクトル　calc_EOM_workから書き出されたファイル
+
 function dx_heel_vec = calc_dx_heel_vec(in1,in2,in3)
 %CALC_DX_HEEL_VEC
 %    DX_HEEL_VEC = CALC_DX_HEEL_VEC(IN1,IN2,IN3)

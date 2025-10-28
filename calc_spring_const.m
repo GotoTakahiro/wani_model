@@ -15,7 +15,7 @@ function [k,c] = calc_spring_const(general_q,l_link_list,l_muscle_list,limit_lis
     if cross_wire_pulley(3) > 0
         angle_wire_pulley = 2*pi-angle_wire_pulley;
     end
-
+    %BP1の座標計算
     x2 = general_q(1) + general_q(10)*sin(general_q(9));
     y2 = general_q(2) - general_q(10)*cos(general_q(9));
 
@@ -29,6 +29,7 @@ function [k,c] = calc_spring_const(general_q,l_link_list,l_muscle_list,limit_lis
         L_GE_present = sqrt((general_q(3)-Coordinate_toe_to_pulley(1))^2 + (general_q(4)-Coordinate_toe_to_pulley(2))^2);
     end
 
+    %L_Ciがたるんでいたら係数0
     if L_Ci_present < l_muscle_list(1)
         k(1) = 0;
         c(1) = 0;
@@ -36,7 +37,7 @@ function [k,c] = calc_spring_const(general_q,l_link_list,l_muscle_list,limit_lis
         k(1) = default_wire_k;
         c(1) = default_wire_c;
     end
-
+    %L_CFLTがたるんでいたら係数0
     if L_CFLT_present < l_muscle_list(2)
         k(2) = 0;
         c(2) = 0;
@@ -44,7 +45,7 @@ function [k,c] = calc_spring_const(general_q,l_link_list,l_muscle_list,limit_lis
         k(2) = default_wire_k;
         c(2) = default_wire_c;
     end
-
+    %L_GEoがたるんでいたら係数0
     if L_GEo_present < l_muscle_list(3)
         k(3) = 0;
         c(3) = 0;
@@ -52,7 +53,7 @@ function [k,c] = calc_spring_const(general_q,l_link_list,l_muscle_list,limit_lis
         k(3) = default_wire_k;
         c(3) = default_wire_c;
     end
-
+    %L_GEがたるんでいたら係数0
     if L_GE_present < l_muscle_list(4)
         k(4) = 0;
         c(4) = 0;
@@ -61,26 +62,28 @@ function [k,c] = calc_spring_const(general_q,l_link_list,l_muscle_list,limit_lis
         c(4) = default_wire_c;
     end
 
-    % 足関節の背屈と底屈の制限
+    % 足関節の背屈の制限
     if general_q(8) > limit_list(1)
-        k(5) = default_wire_k;
+        k(5) = k_frame;%default_wire_k;
     else
         k(5) = 0;
         c(5) = 0;
     end
-
+    %足関節の底屈の制限
     if general_q(8) < limit_list(2)
-        k(6) = default_wire_k;
+        k(6) = k_frame;%default_wire_k;
     else
         k(6) = 0;
         c(6) = 0;
     end
 
-    % 粘性は常に入れる
+    % 足関節の粘性は常に入れる
     c(5) = c_frame/50; %ankle
     c(6) = c_frame/50; %ankle
+
+    % フレームの角度が常に一定（水平）に保つための係数，角度theta1に依存
     k(7) = k_frame;    %frame
     c(7) = c_frame/20; %frame
-
-    c(8) = c_frame*0; %CFL
+    %CFLの粘性係数c_CFLは0 CFLの粘弾性項は粘弾性エネルギーからではなく，l_CFLを一定に保つための力の方に含まれている
+    c(8) = c_frame*0; %c_CFL
 end

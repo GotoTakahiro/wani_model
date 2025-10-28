@@ -1,3 +1,5 @@
+%踵のy座標　calc_EOM_workから書き出されたファイル
+
 function y_heel = calc_y_heel(in1,in2)
 %CALC_Y_HEEL
 %    Y_HEEL = CALC_Y_HEEL(IN1,IN2)

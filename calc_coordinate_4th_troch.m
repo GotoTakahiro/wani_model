@@ -1,3 +1,5 @@
+%第４起始点の座標　calc_EOM_workから書き出されたファイル
+
 function Coordinate_4th_troch = calc_coordinate_4th_troch(in1,in2)
 %CALC_COORDINATE_4TH_TROCH
 %    Coordinate_4th_troch = CALC_COORDINATE_4TH_TROCH(IN1,IN2)

@@ -1,3 +1,5 @@
+%粘弾性項　calc_EOM_workから書き出されたファイル
+
 function D = Damping_matrix(in1,in2,in3,in4)
 %Damping_matrix
 %    D = Damping_matrix(IN1,IN2,IN3,IN4)

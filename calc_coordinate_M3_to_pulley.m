@@ -1,3 +1,5 @@
+%M3からプーリーへの接点の座標　calc_EOM_workから書き出されたファイル
+
 function coodinate_M3_to_pulley = calc_coordinate_M3_to_pulley(in1,in2)
 %calc_coordinate_M3_to_pulley
 %    coodinate_M3_to_pulley = calc_coordinate_M3_to_pulley(IN1,IN2)

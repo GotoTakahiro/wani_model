@@ -1,3 +1,5 @@
+%つま先のy座標　calc_EOM_workから書き出されたファイル
+
 function y_toe = calc_y_toe(in1,in2)
 %CALC_Y_TOE
 %    Y_TOE = CALC_Y_TOE(IN1,IN2)

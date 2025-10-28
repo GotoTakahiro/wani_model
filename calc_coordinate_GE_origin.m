@@ -1,3 +1,5 @@
+%GE_originの座標　calc_EOM_workから書き出されたファイル
+
 function Coordinate_GE_origin = calc_coordinate_GE_origin(in1,in2)
 %calc_coordinate_GE_origin
 %    Coordinate_GE_origin = calc_coordinate_GE_origin(IN1,IN2)

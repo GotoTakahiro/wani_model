@@ -1,3 +1,5 @@
+%プーリーでの外積を計算　calc_EOM_workから書き出されたファイル
+
 function cross_wire_pulley = calc_cross_wire_pulley(in1,in2)
 %CALC_CROSS_WIRE_PULLEY
 %    CROSS_WIRE_PULLEY = CALC_CROSS_WIRE_PULLEY(IN1,IN2)

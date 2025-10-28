@@ -1,3 +1,5 @@
+%ワイヤーがプーリーにかかった角度　calc_EOM_workから書き出されたファイル
+
 function angle_wire_pulley = calc_angle_wire_pulley(in1,in2)
 %CALC_ANGLE_WIRE_PULLEY
 %    ANGLE_WIRE_PULLEY = CALC_ANGLE_WIRE_PULLEY(IN1,IN2)

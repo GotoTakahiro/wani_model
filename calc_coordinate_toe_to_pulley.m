@@ -1,3 +1,5 @@
+%つま先からプーリーへの接点の座標　calc_EOM_workから書き出されたファイル
+
 function coodinate_toe_to_pulley = calc_coordinate_toe_to_pulley(in1,in2)
 %CALC_COORDINATE_TOE_TO_PULLEY
 %    COODINATE_TOE_TO_PULLEY = CALC_COORDINATE_TOE_TO_PULLEY(IN1,IN2)

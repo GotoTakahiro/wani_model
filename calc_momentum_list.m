@@ -1,3 +1,5 @@
+%運動量の計算　calc_EOM_workから書き出されたファイル
+
 function momentum_list = calc_momentum_list(in1,in2,in3,in4)
 %CALC_MOMENTUM_LIST
 %    MOMENTUM_LIST = CALC_MOMENTUM_LIST(IN1,IN2,IN3,IN4)

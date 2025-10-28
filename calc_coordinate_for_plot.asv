@@ -23,12 +23,11 @@ function [coordinates_x, coordinates_y, angle_wire_pulley] = calc_coordinate_for
         %Y shaped（BP2）の座標
         coordinates_x(i,7) = q(i,3); 
         coordinates_y(i,7) = q(i,4);
-        %M3からpulleyへ接線を引いたときの接点
+        %M3からpulleyへ接線を引いたときの
         temp = calc_coordinate_M3_to_pulley(L_link,general_q);
         coordinates_x(i,8) = temp(1,1); 
         coordinates_y(i,8) = temp(2,1);
-        %描画のときに恐らく使っていない
-        coordinates_x(i,9) = q(i,7); 
+        coordinates_x(i,9) = q(i,7); %CFL origin
         coordinates_y(i,9) = q(i,8);
         %4th trochanter（Ciの付着位置）の座標
         coordinates_x(i,10) = coordinates_x(i,2) + L_link(4)*sin(q(i,5)+q(i,6)); 
@@ -36,6 +35,5 @@ function [coordinates_x, coordinates_y, angle_wire_pulley] = calc_coordinate_for
         %GE_origin（GEoの付着位置）の座標  
         coordinates_x(i,11) = coordinates_x(i,2) + L_link(5)*sin(q(i,5)+q(i,6)); 
         coordinates_y(i,11) = coordinates_y(i,2) - L_link(5)*cos(q(i,5)+q(i,6));
-        %プーリーにかかっているワイヤの角度
         angle_wire_pulley(i) = calc_angle_wire_pulley(L_link,general_q);
     end

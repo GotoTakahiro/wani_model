@@ -1,3 +1,5 @@
+%筋腱によるトルクの計算　calc_EOM_workから書き出されたファイル
+
 function torque_muscle = calc_torque_muscle(in1,in2,in3,in4,in5,in6)
 %CALC_TORQUE_MUSCLE
 %    TORQUE_MUSCLE = CALC_TORQUE_MUSCLE(IN1,IN2,IN3,IN4,IN5,IN6)

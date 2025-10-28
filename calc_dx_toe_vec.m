@@ -1,3 +1,5 @@
+%爪先の速度ベクトル　calc_EOM_workから書き出されたファイル
+
 function dx_toe_vec = calc_dx_toe_vec(in1,in2,in3)
 %CALC_DX_TOE_VEC
 %    DX_TOE_VEC = CALC_DX_TOE_VEC(IN1,IN2,IN3)

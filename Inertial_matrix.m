@@ -1,3 +1,5 @@
+%慣性行列　calc_EOM_workから書き出されたファイル
+
 function M = Inertial_matrix(in1,in2,in3)
 %Inertial_matrix
 %    M = Inertial_matrix(IN1,IN2,IN3)

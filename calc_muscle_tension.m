@@ -1,3 +1,5 @@
+%筋腱による張力　calc_EOM_workから書き出されたファイル
+
 function muscle_tension = calc_muscle_tension(in1,in2,in3,in4,in5,in6)
 %CALC_MUSCLE_TENSION
 %    MUSCLE_TENSION = CALC_MUSCLE_TENSION(IN1,IN2,IN3,IN4,IN5,IN6)

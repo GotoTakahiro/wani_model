@@ -1,3 +1,5 @@
+%腓骨（tibia）の重心速度　calc_EOM_workから書き出されたファイル
+
 function dx_tib_CoM_vec = calc_dx_tib_CoM_vec(in1,in2,in3)
 %calc_dx_tib_CoM_vec
 %    dx_tib_CoM_vec = calc_dx_tib_CoM_vec(IN1,IN2,IN3)

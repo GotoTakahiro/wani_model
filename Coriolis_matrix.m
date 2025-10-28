@@ -1,3 +1,5 @@
+%コリオリ・遠心力行列　calc_EOM_workから書き出されたファイル
+
 function C = Coriolis_matrix(in1,in2,in3,in4)
 %Coriolis_matrix
 %    C = Coriolis_matrix(IN1,IN2,IN3,IN4)

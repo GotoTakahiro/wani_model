@@ -158,6 +158,7 @@ uvec_4thtro_to_m2 = [(x2-x_4th_troch); (y2-y_4th_troch)]/sqrt((x2-x_4th_troch)^2
 uvec_m2_to_m3 = [(x3-x2); (y3-y2)]/sqrt((x3-x2)^2 + (y3-y2)^2);
 uvec_GEo_to_m3 = [(x3-x_GE_origin); (y3-y_GE_origin)]/sqrt((x3-x_GE_origin)^2 + (y3-y_GE_origin)^2);
 uvec_toe_to_pulley = -vec_pulley_to_toe/norm(vec_pulley_to_toe);
+uvec_pulley_to_toe = vec_pulley_to_toe/norm(vec_pulley_to_toe);
 uvec_m3_to_pulley = -vec_pulley_to_M3/norm(vec_pulley_to_M3);
 
 %Kinetic energy，運動エネルギーの計算
@@ -184,7 +185,8 @@ U = U_M1 + U_M2 + U_M3 + U_frame + U_fem + U_tib + U_met;
 L_Ci_dis = sqrt((x_4th_troch - x2)^2 + (y_4th_troch - y2)^2) - L_Ci;
 L_CFLT_dis = sqrt((x3 - x2)^2 + (y3- y2)^2) - L_CFLT;
 L_GEo_dis = sqrt((x3 - x_GE_origin)^2 + (y3 - y_GE_origin)^2) - L_GEo;
-L_GE_dis = (sqrt((x3 - x_M3_to_pulley)^2 + (y3 - y_M3_to_pulley)^2) + r*angle_wire_pulley) - L_GE; % M3（論文ではM2）からプーリに引かれるワイヤの長さと，ワイヤとプーリの接点から足底（GE停止点）までの円弧で長さを評価．
+% M3（論文ではM2）からプーリに引かれるワイヤの長さと，ワイヤとプーリの接点から足底（GE停止点）までの円弧で長さを評価．
+L_GE_dis = (sqrt((x3 - x_M3_to_pulley)^2 + (y3 - y_M3_to_pulley)^2) + r*angle_wire_pulley) - L_GE; 
 L_ankle_ex = theta4 - ankle_limit_ex;
 L_ankle_flex = ankle_limit_flex - theta4;
 L_frame_dis = theta1 - default_frame_angle;
@@ -262,9 +264,9 @@ D_frame = 1/2*c_frame*dL_frame_dis^2;
 %l_CFLの粘弾性による粘弾性エネルギーの計算
 D_l_CFL = 1/2*c_CFL*dL_l_CFL^2; %c_CFL=0のため，0となる
 %エネルギー散逸
-D_lim = D_ankle_flex+D_ankle_ex + D_frame+ D_l_CFL;
+D_lim = D_ankle_flex+D_ankle_ex + D_frame;
 %一般化力への変換，単位はトルク
-D_lim = jacobian(-D_lim, dq).';
+Jac_D_lim = jacobian(-D_lim, dq).';
 
 %Lagrangian
 %リンク系の運動E-リンク系の位置E-筋腱が元の長さを保とうとする張力による弾性E
@@ -274,7 +276,7 @@ L = T - U - U_spring;
 M = jacobian(jacobian(L, dq), dq);
 C = jacobian(jacobian(L, dq), q)*dq;
 G = jacobian(L, q).';
-D = D_m2 + D_m3 + D_4thtro + D_GEo + D_GE_pulley + D_lim;
+D = D_m2 + D_m3 + D_4thtro + D_GEo + D_GE_pulley + Jac_D_lim;
 
 %地面反力の計算
 Jac_hip = jacobian([x_hip; y_hip], q);
@@ -317,46 +319,98 @@ COM_x = (M1*x1 + M2*x2 + M3*x3 + M_frame*x_frame_CoM + M_fem*x_fem_CoM + M_tib*x
 COM_y = (M1*y1 + M2*y2 + M3*y3 + M_frame*y_frame_CoM + M_fem*y_fem_CoM + M_tib*y_tib_CoM + M_met*y_met_CoM)/(M1 + M2 + M3 + M_frame + M_fem + M_tib + M_met);
 COM = [COM_x; COM_y];
 
-%運動量の計算
-momentum_frame_COM_x = (M_frame+M_hip)*dx_frame_CoM;
-momentum_frame_COM_y = (M_frame+M_hip)*dy_frame_CoM;
-momentum_fem_COM_x = M_fem*dx_fem_CoM;
-momentum_fem_COM_y = M_fem*dy_fem_CoM;
-momentum_tib_COM_x = M_tib*dx_tib_CoM;
-momentum_tib_COM_y = M_tib*dy_tib_CoM;
-momentum_met_COM_x = (M_met+M_met_pulley)*dx_met_CoM;
-momentum_met_COM_y = (M_met+M_met_pulley)*dy_met_CoM;
+%②F_Ciの発揮力（伸展方向を正ととる，M2が基準点）
+%相対速度を求める
+rv_m2_to_4thtro = [dx_4th_troch-dx2;dy_4th_troch-dy2];
+%M2 to 4th方向の速度成分
+rv_Ci = dot(rv_m2_to_4thtro, -uvec_4thtro_to_m2);
+F_Ci_all = -k_Ci*L_Ci_dis-c_Ci*rv_Ci;
+%x,y成分に分解
+F_Ci_all_vec = F_Ci_all*(-uvec_4thtro_to_m2);
+%F_Ciが4th_trochで発生させるトルク
+T_Ci_4th=jacobian([x_4th_troch; y_4th_troch], q).'*(-F_Ci_all_vec);
+%F_CiがM2で発生させるトルク
+T_Ci_M2=jacobian([x2; y2], q).'*F_Ci_all_vec;
 
-momentum_frame_COM = [momentum_frame_COM_x; momentum_frame_COM_y; 0];
-momentum_fem_COM = [momentum_fem_COM_x; momentum_fem_COM_y; 0];
-momentum_tib_COM = [momentum_tib_COM_x; momentum_tib_COM_y; 0];
-momentum_met_COM = [momentum_met_COM_x; momentum_met_COM_y; 0];
-%原点周りの角運動量（外積）
-momentum_frame_COM_z = cross([x_frame_CoM; y_frame_CoM; 0], [momentum_frame_COM_x; momentum_frame_COM_y; 0]);
-momentum_frame_COM_z = momentum_frame_COM_z(3);
-momentum_fem_COM_z = cross([x_fem_CoM; y_fem_CoM; 0], [momentum_fem_COM_x; momentum_fem_COM_y; 0]);
-momentum_fem_COM_z = momentum_fem_COM_z(3);
-momentum_tib_COM_z = cross([x_tib_CoM; y_tib_CoM; 0], [momentum_tib_COM_x; momentum_tib_COM_y; 0]);
-momentum_tib_COM_z = momentum_tib_COM_z(3);
-momentum_met_COM_z = cross([x_met_CoM; y_met_CoM; 0], [momentum_met_COM_x; momentum_met_COM_y; 0]);
-momentum_met_COM_z = momentum_met_COM_z(3);
 
-%リンクの角運動量の計算
-angular_momentum_frame = J_frame*dtheta1;
-angular_momentum_fem = J_fem*(dtheta1+dtheta2);
-angular_momentum_tib = J_tib*(dtheta1+dtheta2+dtheta3);
-angular_momentum_met = J_met*(dtheta1+dtheta2+dtheta3+dtheta4);
-%原点まわりの全角運動量
-angular_moment_frame_origin = momentum_frame_COM_z + angular_momentum_frame;
-angular_moment_fem_origin = momentum_fem_COM_z + angular_momentum_fem;
-angular_moment_tib_origin = momentum_tib_COM_z + angular_momentum_tib;
-angular_moment_met_origin = momentum_met_COM_z + angular_momentum_met;
-%計算結果の格納
-momentum_list = [angular_moment_frame_origin; angular_moment_fem_origin; angular_moment_tib_origin; angular_moment_met_origin];
-angular_moment_list = [angular_momentum_frame; angular_momentum_fem; angular_momentum_tib; angular_momentum_met];
-momentum_COM_list = [momentum_frame_COM_x; momentum_frame_COM_y; momentum_fem_COM_x; momentum_fem_COM_y; momentum_tib_COM_x; momentum_tib_COM_y; momentum_met_COM_x; momentum_met_COM_y];
+%③F_CFLTの発揮力（伸展方向を正ととる，M2が基準点）
+%相対速度を求める
+rv_m2_to_m3 = [dx3-dx2;dy3-dy2];
+%M2 to M3方向の速度成分
+rv_CFLT = dot(rv_m2_to_m3, uvec_m2_to_m3);
+F_CFLT_all = -k_CFLT*L_CFLT_dis-c_CFLT*rv_CFLT;
+%x,y成分に分解
+F_CFLT_all_vec = F_CFLT_all*uvec_m2_to_m3;
+%F_CFLTがM2で発生させるトルク
+T_CFLT_M2=jacobian([x2; y2], q).'*F_CFLT_all_vec;
+%F_CFLTがM3で発生させるトルク
+T_CFLT_M3=jacobian([x3; y3], q).'*(-F_CFLT_all_vec);
 
-disp('writing...')
+%④F_GEoの発揮力（伸展方向を正ととる，M3が基準点）
+%相対速度を求める
+rv_m3_to_GEo = [dx_GE_origin-dx3;dy_GE_origin-dy3];
+%M3 to GEo方向の速度成分
+rv_GEo = dot(rv_m3_to_GEo, -uvec_GEo_to_m3);
+F_GEo_all = -k_GEo*L_GEo_dis-c_GEo*rv_GEo;
+%x,y成分に分解
+F_GEo_all_vec = F_GEo_all*(-uvec_GEo_to_m3);
+%F_GEoがM3で発生させるトルク
+T_GEo_M2=jacobian([x3; y3], q).'*F_GEo_all_vec;
+%F_GEoがGEoriginで発生させるトルク
+T_GEo_GEorigin=jacobian([x_GE_origin; y_GE_origin], q).'*(-F_GEo_all_vec);
+
+%⑤F_GEの発揮力（伸展方向を正ととる，M3が基準点）
+%相対速度を求める
+rv_m3_to_GE = [dx_M3_to_pulley-dx3;dy_M3_to_pulley-dy3];
+%M3 to GEo方向の速度成分
+rv_GE = dot(rv_m3_to_GE, uvec_m3_to_pulley);
+F_GE_all = -k_GE*L_GE_dis-c_GE*rv_GE;
+%x,y成分に分解
+F_GE_all_vec = F_GE_all*uvec_m3_to_pulley;
+F_GE_all_vec2 = F_GE_all*uvec_pulley_to_toe;
+%F_GEがM3で発生させるトルク
+T_GE_M3=jacobian([x3; y3], q).'*F_GE_all_vec;
+%F_GEがtoe_pulleyで発生させるトルク
+%力の向きもpulley_to_toeを正方向にとったとき
+T_GE_toe_pulley=jacobian([x_toe_to_pulley; y_toe_to_pulley], q).'*(-F_GE_all_vec2);
+%F_GEがM3_pulleyで発生させるトルク
+T_GE_M3_pulley=jacobian([x_M3_to_pulley; y_M3_to_pulley], q).'*(-F_GE_all_vec);
+
+%⑥frame(theta1)の角度を固定しようとする拘束力（M1に直接作用するトルク）
+T_frame = -k_frame*L_frame_dis-c_frame*dL_frame_dis;
+%⑦theta4が底屈しないようにするためのトルク
+T_ankle_flex = -k_ankle_flex*L_ankle_flex-c_ankle_flex*dL_ankle_flex;
+%⑧theta4が背屈しないようにするためのトルク
+T_ankle_ex = -k_ankle_ex*L_ankle_ex-c_ankle_ex*dL_ankle_ex;
+%ワイヤ張力とトルクの格納
+F_all=[F_CFL_PID;F_Ci_all;F_CFLT_all;F_GEo_all;F_GE_all];
+T_all=[T_Ci_4th;T_Ci_M2;T_CFLT_M2;T_CFLT_M3;T_GEo_M2;T_GEo_GEorigin;T_GE_M3;T_GE_toe_pulley;T_GE_M3_pulley;T_frame;T_ankle_flex;T_ankle_ex];
+
+%重力項のトルク計算
+%フレーム＋股関節
+Mg_frame=[0;-(M_frame+M_hip)*g];
+Torque_frame=jacobian([x_frame_CoM;y_frame_CoM], q).'*Mg_frame;
+%大腿骨
+Mg_fem=[0;-M_fem*g];
+Torque_fem=jacobian([x_fem_CoM;y_fem_CoM], q).'*Mg_fem;
+%膝関節
+Mg_tib=[0;-M_tib*g];
+Torque_tib=jacobian([x_tib_CoM;y_tib_CoM], q).'*Mg_tib;
+%足先
+Mg_met=[0;-M_met*g];
+Torque_met=jacobian([x_met_CoM;y_met_CoM], q).'*Mg_met;
+%質点M2
+Mg_M2=[0;-M2*g];
+Torque_M2=jacobian([x2;y2], q).'*Mg_M2;
+%質点M3
+Mg_M3=[0;-M3*g];
+Torque_M3=jacobian([x3;y3], q).'*Mg_M3;
+%トルクの格納
+T_gravity_all=[Torque_M2;Torque_M3;Torque_frame;Torque_fem;Torque_tib;Torque_met];
+matlabFunction(T_gravity_all,'File','calc_torque_gravity_all', 'Vars', {m_list,l_link_list, l_muscle_list, q,g});
+
+
+%disp('writing...')
 % matlabFunction(M,'File','Inertial_matrix', 'Vars', {m_list, l_link_list, q});
 % matlabFunction(C,'File','Coriolis_matrix', 'Vars', {m_list, l_link_list, q, dq});
 % matlabFunction(G,'File','Stiffness_matrix', 'Vars', {m_list, l_link_list, l_muscle_list, k_list, limit_list, g, q, dq});
@@ -376,6 +430,9 @@ disp('writing...')
 % matlabFunction(torque_muscle,'File','calc_torque_muscle', 'Vars', {l_link_list, l_muscle_list, k_list, c_list, q, dq});
 % matlabFunction(muscle_tension,'File','calc_muscle_tension', 'Vars', {l_link_list, l_muscle_list, k_list, c_list, q, dq});
 % matlabFunction(COM,'File','calc_COM', 'Vars', {m_list, l_link_list, q});
+
+matlabFunction(F_all,'File','calc_force_all', 'Vars', {l_link_list, l_muscle_list, k_list, c_list, q,dq, gain_list, error_CFL, int_error_CFL, derror_CFL});
+matlabFunction(T_all,'File','calc_torque_force_all', 'Vars', { l_link_list, l_muscle_list, k_list, c_list,limit_list, q,dq, gain_list, error_CFL, int_error_CFL, derror_CFL});
 
 % matlabFunction(dx_frame_CoM_vec, 'File', 'calc_dx_frame_CoM_vec', 'Vars', {m_list,l_link_list, q, dq});
 % matlabFunction(dx_fem_CoM_vec, 'File', 'calc_dx_fem_CoM_vec', 'Vars', {l_link_list, q, dq});

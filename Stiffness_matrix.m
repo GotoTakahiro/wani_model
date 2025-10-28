@@ -1,3 +1,5 @@
+%重力・弾性項行列　calc_EOM_workから書き出されたファイル
+
 function G = Stiffness_matrix(in1,in2,in3,in4,in5,g,in7,in8)
 %Stiffness_matrix
 %    G = Stiffness_matrix(IN1,IN2,IN3,IN4,IN5,g,IN7,IN8)

@@ -1,3 +1,5 @@
+%フレーム（尾骨脊柱）の重心速度　calc_EOM_workから書き出されたファイル
+
 function dx_frame_CoM_vec = calc_dx_frame_CoM_vec(in1,in2,in3,in4)
 %calc_dx_frame_CoM_vec
 %    dx_frame_CoM_vec = calc_dx_frame_CoM_vec(IN1,IN2,IN3,IN4)

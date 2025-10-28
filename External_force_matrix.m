@@ -1,3 +1,4 @@
+%外力項　calc_EOM_workから書き出されたファイル
 function Q = External_force_matrix(in1,in2,in3,in4,error_CFL,int_error_CFL,derror_CFL)
 %External_force_matrix
 %    Q = External_force_matrix(IN1,IN2,IN3,IN4,error_CFL,int_error_CFL,derror_CFL)

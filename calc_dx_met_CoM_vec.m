@@ -1,3 +1,5 @@
+%足先リンク（metatarsal）の重心速度　calc_EOM_workから書き出されたファイル
+
 function dx_met_CoM_vec = calc_dx_met_CoM_vec(in1,in2,in3,in4)
 %calc_dx_met_CoM_vec
 %    dx_met_CoM_vec = calc_dx_met_CoM_vec(IN1,IN2,IN3,IN4)

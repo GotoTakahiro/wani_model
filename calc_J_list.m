@@ -1,3 +1,5 @@
+%慣性モーメント　calc_EOM_workから書き出されたファイル
+
 function J_list = calc_J_list(in1,in2)
 %calc_J_list
 %    J_list = calc_J_list(IN1,IN2)

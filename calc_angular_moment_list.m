@@ -1,3 +1,5 @@
+%角運動量の計算　calc_EOM_workから書き出されたファイル
+
 function angular_moment_list = calc_angular_moment_list(in1,in2,in3,in4)
 %CALC_ANGULAR_MOMENT_LIST
 %    ANGULAR_MOMENT_LIST = CALC_ANGULAR_MOMENT_LIST(IN1,IN2,IN3,IN4)

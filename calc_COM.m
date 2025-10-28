@@ -1,3 +1,5 @@
+%全体の重心位置の座標　calc_EOM_workから書き出されたファイル
+
 function COM = calc_COM(in1,in2,in3)
 %calc_COM
 %    COM = calc_COM(IN1,IN2,IN3)

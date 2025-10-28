@@ -1,3 +1,5 @@
+%股関節の速度ベクトル　calc_EOM_workから書き出されたファイル
+
 function dx_hip_vec = calc_dx_hip_vec(in1,in2,in3)
 %CALC_DX_HIP_VEC
 %    DX_HIP_VEC = CALC_DX_HIP_VEC(IN1,IN2,IN3)
