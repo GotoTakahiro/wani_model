@@ -1,7 +1,7 @@
 % clear;
  close all;
 % clearvars
-load('/Users/goto/Documents/Matlab_goto/crocodile_sim_PID-main/results/plotall2/exp20251028_CFL350_Ci44_CFLT100_GEo35_GE185.mat');
+load('/Users/goto/Documents/Matlab_goto/crocodile_sim_PID-main/results/plotall3/exp20251028_CFL350_Ci44_CFLT100_GEo35_GE185.mat');
 % load('results/20240712_MuscleLengthTest_PID/exp20240712_MuscleLengthTest_PID_1125_P50000_I50_D550_CFL350_Ci44_CFLT107_GEo43_GE200.mat');
 % load('results/20240726_init_condition_test_per2mm/exp20240726_init_condition_test_per2mm_223_Hip20_Knee44_CFL350_Ci44_CFLT107_GEo37_GE188.mat');
 % load('results/20240822_for_nolta_paper_rev/knee83/exp20240822_for_nolta_paper_noGE_knee83_CFL350_Ci44_CFLT100_GEo35_GE185.mat')
@@ -102,11 +102,71 @@ GE_Color = '#77AC30';
 
 %全ての力を一般化力として扱った時の総トルクを計算
 %theta1
-torque_all=-(data_T_all(:,1:10)+data_T_all(:,11:20)+data_T_all(:,21:30)+data_T_all(:,31:40)+data_T_all(:,41:50)+data_T_all(:,51:60)+data_T_all(:,61:70)+data_T_all(:,81:90));
+torque_all=(data_T_all(:,1:10)+data_T_all(:,11:20)+data_T_all(:,21:30)+data_T_all(:,31:40)+data_T_all(:,41:50)+data_T_all(:,51:60)+data_T_all(:,71:80));%+data_T_all(:,81:90));
 torque_all=torque_all+data_T_gravity_all(:,1:10)+data_T_gravity_all(:,11:20)+data_T_gravity_all(:,21:30)+data_T_gravity_all(:,31:40)+data_T_gravity_all(:,41:50)+data_T_gravity_all(:,51:60);
 torque_all(:,5)=torque_all(:,5)+data_T_all(:,91);
 torque_all(:,8)=torque_all(:,8)+data_T_all(:,93);
-torque_all=torque_all+data_Q_hip_up(:,1:10)+data_Q_hip_pull(:,1:10)+data_Q_heel(:,1:10)+data_Q_toe(:,1:10);
+torque_all=torque_all+data_Q_hip_pull(:,1:10)+data_Q_heel(:,1:10)+data_Q_toe(:,1:10)+data_Q_hip_up(:,1:10);
+
+%一般化力からhipの質点に働く力を逆算するための関数
+%ワイヤー項
+F_hip_Ci_4th= func_F_hip(q,l_link_list,data_T_all(:,1:10));
+F_hip_Ci_M2= func_F_hip(q,l_link_list,data_T_all(:,11:20));
+F_hip_CFLT_M2= func_F_hip(q,l_link_list,data_T_all(:,21:30));
+F_hip_CFLT_M3= func_F_hip(q,l_link_list,data_T_all(:,31:40)); %0
+F_hip_GEo_M3= func_F_hip(q,l_link_list,data_T_all(:,41:50));
+F_hip_GEo_GEorigin= func_F_hip(q,l_link_list,data_T_all(:,51:60));
+%F_hip_GE_M3= func_F_hip(q,l_link_list,data_T_all(:,61:70));
+F_hip_GE= func_F_hip(q,l_link_list,data_T_all(:,71:80));
+F_hip_GE_pulley= func_F_hip(q,l_link_list,data_T_all(:,81:90));
+%重力項
+F_hip_M2= func_F_hip(q,l_link_list,data_T_gravity_all(:,1:10));
+F_hip_M3= func_F_hip(q,l_link_list,data_T_gravity_all(:,11:20));
+F_hip_frame= func_F_hip(q,l_link_list,data_T_gravity_all(:,21:30));
+F_hip_fem= func_F_hip(q,l_link_list,data_T_gravity_all(:,31:40));
+F_hip_tib= func_F_hip(q,l_link_list,data_T_gravity_all(:,41:50));
+F_hip_met= func_F_hip(q,l_link_list,data_T_gravity_all(:,51:60));
+
+%外力
+F_hip_hipup= func_F_hip(q,l_link_list,data_Q_hip_up(:,1:10));
+F_hip_hippull= func_F_hip(q,l_link_list,data_Q_hip_pull(:,1:10));
+F_hip_hipheel= func_F_hip(q,l_link_list,data_Q_heel(:,1:10));
+F_hip_hiptoe= func_F_hip(q,l_link_list,data_Q_toe(:,1:10));
+%股関節の支持力を除いた総和を計算
+F_hip_all=F_hip_Ci_4th+F_hip_Ci_M2+F_hip_CFLT_M2+F_hip_CFLT_M3+F_hip_GEo_M3+F_hip_GEo_GEorigin+F_hip_GE;
+F_hip_all=F_hip_all+F_hip_M2+F_hip_M3+F_hip_frame+F_hip_fem+F_hip_tib+F_hip_met;
+F_hip_all=F_hip_all+F_hip_hippull+F_hip_hipheel+F_hip_hiptoe+F_hip_hipup;
+
+%一般化力からCOMの質点に働く力を逆算するための関数
+%ワイヤー項
+F_COM_Ci_4th= func_F_COM(q,m_list,l_link_list,data_T_all(:,1:10));
+F_COM_Ci_M2= func_F_COM(q,m_list,l_link_list,data_T_all(:,11:20));
+F_COM_CFLT_M2= func_F_COM(q,m_list,l_link_list,data_T_all(:,21:30));
+F_COM_CFLT_M3= func_F_COM(q,m_list,l_link_list,data_T_all(:,31:40)); %0
+F_COM_GEo_M3= func_F_COM(q,m_list,l_link_list,data_T_all(:,41:50));
+F_COM_GEo_GEorigin= func_F_COM(q,m_list,l_link_list,data_T_all(:,51:60));
+%F_COM_GE_M3= func_F_COM(q,m_list,l_link_list,data_T_all(:,61:70));
+F_COM_GE= func_F_COM(q,m_list,l_link_list,data_T_all(:,71:80));
+F_COM_GE_pulley= func_F_COM(q,m_list,l_link_list,data_T_all(:,81:90));
+%重力項
+F_COM_M2= func_F_COM(q,m_list,l_link_list,data_T_gravity_all(:,1:10));
+F_COM_M3= func_F_COM(q,m_list,l_link_list,data_T_gravity_all(:,11:20));
+F_COM_frame= func_F_COM(q,m_list,l_link_list,data_T_gravity_all(:,21:30));
+F_COM_fem= func_F_COM(q,m_list,l_link_list,data_T_gravity_all(:,31:40));
+F_COM_tib= func_F_COM(q,m_list,l_link_list,data_T_gravity_all(:,41:50));
+F_COM_met= func_F_COM(q,m_list,l_link_list,data_T_gravity_all(:,51:60));
+
+%外力
+F_COM_hipup= func_F_COM(q,m_list,l_link_list,data_Q_hip_up(:,1:10));
+F_COM_hippull= func_F_COM(q,m_list,l_link_list,data_Q_hip_pull(:,1:10));
+F_COM_hipheel= func_F_COM(q,m_list,l_link_list,data_Q_heel(:,1:10));
+F_COM_hiptoe= func_F_COM(q,m_list,l_link_list,data_Q_toe(:,1:10));
+%股関節の支持力を除いた総和を計算
+F_COM_all=F_COM_Ci_4th+F_COM_Ci_M2+F_COM_CFLT_M2+F_COM_CFLT_M3+F_COM_GEo_M3+F_COM_GEo_GEorigin+F_COM_GE;
+F_COM_all=F_COM_all+F_COM_M2+F_COM_M3+F_COM_frame+F_hip_fem+F_COM_tib+F_COM_met;
+F_COM_all=F_COM_all+F_COM_hippull+F_COM_hipheel+F_COM_hiptoe+F_COM_hipup;
+
+%一般化力から股関節にかかる力を計算
 
 if graph_view == true
 
@@ -306,6 +366,7 @@ if graph_view == true
     %     exportgraphics(gca, [save_path name '_wireforce.pdf'], 'ContentType', 'vector');
     % end
 
+
     %Figure21：トルクの総和をそれぞれ表示
     figure(21)
     plot(t(:,1),torque_all(:,5),'LineWidth',2);
@@ -328,16 +389,16 @@ if graph_view == true
     %Figure22：theta1にかかるトルクをそれぞれ表示
     figure(22)
     hold on
-    plot(t(:,1),-data_T_all(:,5),'LineWidth',2);
+    plot(t(:,1),data_T_all(:,5),'LineWidth',2);
         % plot(t(:,1),data_T_all(:,15),'LineWidth',2); %0
         % plot(t(:,1),data_T_all(:,25),'LineWidth',2); %0
         % plot(t(:,1),data_T_all(:,35),'LineWidth',2); %0
         % plot(t(:,1),data_T_all(:,45),'LineWidth',2); %0
-    plot(t(:,1),-data_T_all(:,55),'LineWidth',2);
+    plot(t(:,1),data_T_all(:,55),'LineWidth',2);
         % plot(t(:,1),data_T_all(:,65),'LineWidth',2); %0
-    plot(t(:,1),-data_T_all(:,85),'LineWidth',2);
-    plot(t(:,1),-data_T_all(:,75),'LineWidth',2);
-    plot(t(:,1),-data_T_all(:,91),'LineWidth',2);
+    plot(t(:,1),data_T_all(:,75),'LineWidth',2);
+    %plot(t(:,1),data_T_all(:,85),'LineWidth',2);
+    plot(t(:,1),data_T_all(:,91),'LineWidth',2);
         %plot(t(:,1),data_T_gravity_all(:,5),'LineWidth',2); %0
         %plot(t(:,1),data_T_gravity_all(:,15),'LineWidth',2); %0
     % plot(t(:,1),data_T_gravity_all(:,25),'LineWidth',2);
@@ -352,7 +413,7 @@ if graph_view == true
     xlim([0 time_lim]);
     %ylim([-15 55]);
 
-    legend('$Ci_{4th}$','$GEo_{GEori}$','$GE_{M3,p}$','$GE_{t,p}$','$T_{frame}$', ...
+    legend('$Ci_{4th}$','$GEo_{GEori}$','$GE_{wire}$','$T_{frame}$', ...
             '$g_{frame}$','$g_{fem}$','$g_{tib}$','$g_{met}$','$F_{up}$','$F_{heel}$','$F_{toe}$',...
             'Interpreter', 'latex', 'FontSize',12,'Location','northeast', 'NumColumns',5);
     xlabel('Time [s]');
@@ -372,7 +433,7 @@ if graph_view == true
     %     % plot(t(:,1),data_T_all(:,65),'LineWidth',2); %0
     % plot(t(:,1),-data_T_all(:,75),'LineWidth',2);
     % plot(t(:,1),-data_T_all(:,85),'LineWidth',2);
-    % plot(t(:,1),-data_T_all(:,91),'LineWidth',2);
+    % plot(t(:,1),data_T_all(:,91),'LineWidth',2);
         %plot(t(:,1),data_T_gravity_all(:,5),'LineWidth',2); %0
         %plot(t(:,1),data_T_gravity_all(:,15),'LineWidth',2); %0
     plot(t(:,1),data_T_gravity_all(:,25),'LineWidth',2);
@@ -398,15 +459,15 @@ if graph_view == true
     %Figure24：theta2にかかるトルクをそれぞれ表示
     figure(24)
     hold on
-    plot(t(:,1),-data_T_all(:,6),'LineWidth',2);
+    plot(t(:,1),data_T_all(:,6),'LineWidth',2);
         % plot(t(:,1),data_T_all(:,16),'LineWidth',2); %0
         % plot(t(:,1),data_T_all(:,26),'LineWidth',2); %0
         % plot(t(:,1),data_T_all(:,36),'LineWidth',2); %0
         % plot(t(:,1),data_T_all(:,46),'LineWidth',2); %0
-    plot(t(:,1),-data_T_all(:,56),'LineWidth',2);
+    plot(t(:,1),data_T_all(:,56),'LineWidth',2);
         % plot(t(:,1),data_T_all(:,66),'LineWidth',2); %0
-    plot(t(:,1),-data_T_all(:,86),'LineWidth',2);
-    plot(t(:,1),-data_T_all(:,76),'LineWidth',2);
+    plot(t(:,1),data_T_all(:,76),'LineWidth',2);
+    %plot(t(:,1),data_T_all(:,86),'LineWidth',2);
         %plot(t(:,1),data_T_gravity_all(:,6),'LineWidth',2); %0
         %plot(t(:,1),data_T_gravity_all(:,16),'LineWidth',2); %0
     % plot(t(:,1),data_T_gravity_all(:,26),'LineWidth',2);
@@ -421,7 +482,7 @@ if graph_view == true
     xlim([0 time_lim]);
     %ylim([-15 55]);
 
-    legend('$Ci_{4th}$','$GEo_{GEori}$','$GE_{M3,p}$','$GE_{t,p}$', ...
+    legend('$Ci_{4th}$','$GEo_{GEori}$','$GE_{wire}$','$GE_{ankle}$', ...
             '$g_{frame}$','$g_{fem}$','$g_{tib}$','$g_{met}$','$F_{up}$','$F_{heel}$','$F_{toe}$',...
             'Interpreter', 'latex', 'FontSize',12,'Location','northeast', 'NumColumns',5);
     xlabel('Time [s]');
@@ -466,15 +527,15 @@ if graph_view == true
     %Figure26：theta3にかかるトルクをそれぞれ表示
     figure(26)
     hold on
-    plot(t(:,1),-data_T_all(:,7),'LineWidth',2);
+    plot(t(:,1),data_T_all(:,7),'LineWidth',2);
         % plot(t(:,1),data_T_all(:,17),'LineWidth',2); %0
         % plot(t(:,1),data_T_all(:,27),'LineWidth',2); %0
         % plot(t(:,1),data_T_all(:,37),'LineWidth',2); %0
         % plot(t(:,1),data_T_all(:,47),'LineWidth',2); %0
-    plot(t(:,1),-data_T_all(:,57),'LineWidth',2);
+    plot(t(:,1),data_T_all(:,57),'LineWidth',2);
         % plot(t(:,1),data_T_all(:,67),'LineWidth',2); %0
-    plot(t(:,1),-data_T_all(:,87),'LineWidth',2);
-    plot(t(:,1),-data_T_all(:,77),'LineWidth',2);
+    plot(t(:,1),data_T_all(:,77),'LineWidth',2);
+    %plot(t(:,1),data_T_all(:,87),'LineWidth',2);
         %plot(t(:,1),data_T_gravity_all(:,7),'LineWidth',2); %0
         %plot(t(:,1),data_T_gravity_all(:,17),'LineWidth',2); %0
     % plot(t(:,1),data_T_gravity_all(:,27),'LineWidth',2);
@@ -489,7 +550,7 @@ if graph_view == true
     xlim([0 time_lim]);
     %ylim([-15 55]);
 
-    legend('$Ci_{4th}$','$GEo_{GEori}$','$GE_{M3,p}$','$GE_{t,p}$', ...
+    legend('$Ci_{4th}$','$GEo_{GEori}$','$GE_{wire}$','$GE_{ankle}$', ...
             '$g_{frame}$','$g_{fem}$','$g_{tib}$','$g_{met}$','$F_{up}$','$F_{heel}$','$F_{toe}$',...
             'Interpreter', 'latex', 'FontSize',12,'Location','northeast', 'NumColumns',5);
     xlabel('Time [s]');
@@ -534,15 +595,15 @@ if graph_view == true
     %Figure28：theta4にかかるトルクをそれぞれ表示
     figure(28)
     hold on
-    plot(t(:,1),-data_T_all(:,8),'LineWidth',2);
+    plot(t(:,1),data_T_all(:,8),'LineWidth',2);
         % plot(t(:,1),data_T_all(:,18),'LineWidth',2); %0
         % plot(t(:,1),data_T_all(:,28),'LineWidth',2); %0
         % plot(t(:,1),data_T_all(:,38),'LineWidth',2); %0
         % plot(t(:,1),data_T_all(:,48),'LineWidth',2); %0
-    plot(t(:,1),-data_T_all(:,58),'LineWidth',2);
+    plot(t(:,1),data_T_all(:,58),'LineWidth',2);
         % plot(t(:,1),data_T_all(:,68),'LineWidth',2); %0
-    plot(t(:,1),-data_T_all(:,88),'LineWidth',2);
-    plot(t(:,1),-data_T_all(:,78),'LineWidth',2);
+    plot(t(:,1),data_T_all(:,78),'LineWidth',2);
+    %plot(t(:,1),data_T_all(:,88),'LineWidth',2);
     plot(t(:,1),data_T_all(:,92),'LineWidth',2);
     plot(t(:,1),data_T_all(:,93),'LineWidth',2);
         %plot(t(:,1),data_T_gravity_all(:,8),'LineWidth',2); %0
@@ -559,7 +620,7 @@ if graph_view == true
     xlim([0 time_lim]);
     %ylim([-15 55]);
 
-    legend('$Ci_{4th}$','$GEo_{GEori}$','$GE_{M3,p}$','$GE_{t,p}$','$T_{ankele,flex}$','$T_{ankle,ex}$', ...
+    legend('$Ci_{4th}$','$GEo_{GEori}$','$GE_{wire}$','$T_{ankele,flex}$','$T_{ankle,ex}$', ...
             '$g_{frame}$','$g_{fem}$','$g_{tib}$','$g_{met}$','$F_{up}$','$F_{heel}$','$F_{toe}$',...
             'Interpreter', 'latex', 'FontSize',12,'Location','northeast', 'NumColumns',5);
     xlabel('Time [s]');
@@ -567,7 +628,7 @@ if graph_view == true
     if graph_save == true
         exportgraphics(gca, [save_path name '_torque_theta4[1].pdf'], 'ContentType', 'vector');
     end
-        %Figure29：theta4にかかるトルクをそれぞれ表示
+    %Figure29：theta4にかかるトルクをそれぞれ表示
     figure(29)
     hold on
     % plot(t(:,1),-data_T_all(:,8),'LineWidth',2);
@@ -603,4 +664,154 @@ if graph_view == true
     if graph_save == true
         exportgraphics(gca, [save_path name '_torque_theta4[2].pdf'], 'ContentType', 'vector');
     end
+
+    %Figure30：質点M1にかかる力をそれぞれ表示
+    figure(30)
+    hold on
+    plot(t(:,1),data_T_all(:,2),'LineWidth',2);
+        plot(t(:,1),data_T_all(:,12),'LineWidth',2); %0
+        plot(t(:,1),data_T_all(:,22),'LineWidth',2); %0
+    %    plot(t(:,1),data_T_all(:,32),'LineWidth',2); %0
+    %    plot(t(:,1),data_T_all(:,42),'LineWidth',2); %0
+    plot(t(:,1),data_T_all(:,52),'LineWidth',2);
+    %    plot(t(:,1),data_T_all(:,62),'LineWidth',2); %0
+    plot(t(:,1),data_T_all(:,72),'LineWidth',2);
+    %plot(t(:,1),data_T_all(:,82),'LineWidth',2);
+    %     plot(t(:,1),data_T_gravity_all(:,2),'LineWidth',2); %0
+    %     plot(t(:,1),data_T_gravity_all(:,12),'LineWidth',2); %0
+    % plot(t(:,1),data_T_gravity_all(:,22),'LineWidth',2);
+    % plot(t(:,1),data_T_gravity_all(:,32),'LineWidth',2);
+    % plot(t(:,1),data_T_gravity_all(:,42),'LineWidth',2);
+    % plot(t(:,1),data_T_gravity_all(:,52),'LineWidth',2);
+    %     plot(t(:,1),data_Q_hip_pull(:,2),'LineWidth',2); %ほぼ0作用線的に
+    % plot(t(:,1),data_Q_hip_up(:,2),'LineWidth',2);
+    % plot(t(:,1),data_Q_heel(:,2),'LineWidth',2);
+    % plot(t(:,1),data_Q_toe(:,2),'LineWidth',2);
+    hold off
+    xlim([0 time_lim]);
+    %ylim([-15 55]);
+    legend('$Ci_{4th}$','$Ci_{M2}$','$CFLT_{M2}$','$GEo_{GEori}$','$GE_{wire}$','$GE_{ankle}$', ...
+            '$g_{M2}$','$g_{M3}$','$g_{frame}$','$g_{fem}$','$g_{tib}$','$g_{met}$','$F_{pull}$','$F_{up}$','$F_{heel}$','$F_{toe}$',...
+            'Interpreter', 'latex', 'FontSize',12,'Location','northeast', 'NumColumns',5);
+    % legend('$Ci_{4th}$','$Ci_{M2}$','$CFLT_{M2}$','$GEo_{GEori}$','$GE_{M3,p}$','$GE_{t,p}$', ...
+    %         '$g_{M2}$','$g_{M3}$','$g_{frame}$','$g_{fem}$','$g_{tib}$','$g_{met}$','$F_{pull}$','$F_{up}$','$F_{heel}$','$F_{toe}$',...
+    %         'Interpreter', 'latex', 'FontSize',12,'Location','northeast', 'NumColumns',5);
+    xlabel('Time [s]');
+    ylabel('Force [N]');
+    if graph_save == true
+        exportgraphics(gca, [save_path name '_force_M2y[1].pdf'], 'ContentType', 'vector');
+    end
+    %Figure31：質点M1にかかる力をそれぞれ表示
+    figure(31)
+    hold on
+    % plot(t(:,1),-data_T_all(:,2),'LineWidth',2);
+    %     plot(t(:,1),data_T_all(:,12),'LineWidth',2); %0
+    %     plot(t(:,1),data_T_all(:,22),'LineWidth',2); %0
+    %     plot(t(:,1),data_T_all(:,32),'LineWidth',2); %0
+    %     plot(t(:,1),data_T_all(:,42),'LineWidth',2); %0
+    % plot(t(:,1),-data_T_all(:,52),'LineWidth',2);
+    %     plot(t(:,1),data_T_all(:,62),'LineWidth',2); %0
+    % plot(t(:,1),-data_T_all(:,82),'LineWidth',2);
+    % plot(t(:,1),-data_T_all(:,72),'LineWidth',2);
+        plot(t(:,1),data_T_gravity_all(:,2),'LineWidth',2); %0
+    %    plot(t(:,1),data_T_gravity_all(:,12),'LineWidth',2); %0
+    plot(t(:,1),data_T_gravity_all(:,22),'LineWidth',2);
+    plot(t(:,1),data_T_gravity_all(:,32),'LineWidth',2);
+    plot(t(:,1),data_T_gravity_all(:,42),'LineWidth',2);
+    plot(t(:,1),data_T_gravity_all(:,52),'LineWidth',2);
+    %    plot(t(:,1),data_Q_hip_pull(:,2),'LineWidth',2); %ほぼ0作用線的に
+    plot(t(:,1),data_Q_hip_up(:,2),'LineWidth',2);
+    plot(t(:,1),data_Q_heel(:,2),'LineWidth',2);
+    plot(t(:,1),data_Q_toe(:,2),'LineWidth',2);
+    hold off
+    xlim([0 time_lim]);
+    %ylim([-15 55]);
+
+    legend( ...
+            '$g_{M2}$','$g_{frame}$','$g_{fem}$','$g_{tib}$','$g_{met}$','$F_{up}$','$F_{heel}$','$F_{toe}$',...
+            'Interpreter', 'latex', 'FontSize',12,'Location','northeast', 'NumColumns',5);
+    xlabel('Time [s]');
+    ylabel('Force [N]');
+    if graph_save == true
+        exportgraphics(gca, [save_path name '_force_M2y[2].pdf'], 'ContentType', 'vector');
+    end
+    %Figure32：質点にかかる力の総和をそれぞれ表示
+    figure(32)
+    plot(t(:,1),F_hip_Ci_4th(:,2),'LineWidth',2);
+    hold on
+    plot(t(:,1),F_hip_Ci_M2(:,2),'LineWidth',2);
+    plot(t(:,1),F_hip_CFLT_M2(:,2),'LineWidth',2);
+    plot(t(:,1),F_hip_CFLT_M3(:,2),'LineWidth',2);
+    %plot(t(:,1),F_hip_GEo_M3(:,2),'LineWidth',2);
+    plot(t(:,1),F_hip_GEo_GEorigin(:,2),'LineWidth',2);
+    plot(t(:,1),F_hip_GE(:,2),'LineWidth',2);
+    hold off
+    xlim([0 time_lim]);
+    %ylim([-6 6]);
+    % legend('Heel-$F_x$','Heel-$F_y$','Toe-$F_x$','Toe-$F_y$', 'Interpreter', 'latex', 'FontSize',20,'Location','best');
+    legend('$Ci_{4th}$','$Ci_{M2}$','$CFLT_{M2}$','$CFLT_{M3}$','$GEo_{origin}$','$GE$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
+    xlabel('Time [s]');
+    ylabel('Force [N]');
+    if graph_save == true
+        exportgraphics(gca, [save_path name '_forcehip[1].pdf'], 'ContentType', 'vector');
+    end
+        %Figure33：質点にかかる力の総和をそれぞれ表示
+    figure(33)
+    plot(t(:,1),F_hip_hipup(:,2),'LineWidth',2);
+    hold on
+    plot(t(:,1),F_hip_hippull(:,2),'LineWidth',2);
+    plot(t(:,1),F_hip_hipheel(:,2),'LineWidth',2);
+    plot(t(:,1),F_hip_hiptoe(:,2),'LineWidth',2);
+    plot(t(:,1),F_hip_all(:,2),'LineWidth',2);
+    
+    hold off
+    xlim([0 time_lim]);
+    %ylim([-6 6]);
+    % legend('Heel-$F_x$','Heel-$F_y$','Toe-$F_x$','Toe-$F_y$', 'Interpreter', 'latex', 'FontSize',20,'Location','best');
+    legend('$up$','$pull$','$heel$','$toe$','$all$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
+    xlabel('Time [s]');
+    ylabel('Force [N]');
+    if graph_save == true
+        exportgraphics(gca, [save_path name '_forcehip[2].pdf'], 'ContentType', 'vector');
+    end
+
+    %Figure34：質点にかかる力の総和をそれぞれ表示
+    figure(34)
+    plot(t(:,1),F_COM_Ci_4th(:,2),'LineWidth',2);
+    hold on
+    plot(t(:,1),F_COM_Ci_M2(:,2),'LineWidth',2);
+    plot(t(:,1),F_COM_CFLT_M2(:,2),'LineWidth',2);
+    plot(t(:,1),F_COM_CFLT_M3(:,2),'LineWidth',2);
+    plot(t(:,1),F_COM_GEo_M3(:,2),'LineWidth',2);
+    plot(t(:,1),F_COM_GEo_GEorigin(:,2),'LineWidth',2);
+    plot(t(:,1),F_COM_GE(:,2),'LineWidth',2);
+    hold off
+    xlim([0 time_lim]);
+    %ylim([-6 6]);
+    legend('$Ci_{4th}$','$Ci_{M2}$','$CFLT_{M2}$','$CFLT_{M3}$','$GEo_{M3}$','$GEo_{origin}$','$GE$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
+    xlabel('Time [s]');
+    ylabel('Force [N]');
+    if graph_save == true
+        exportgraphics(gca, [save_path name '_forcehip[1].pdf'], 'ContentType', 'vector');
+    end
+    %Figure35：質点にかかる力の総和をそれぞれ表示
+    figure(35)
+    plot(t(:,1),F_COM_hipup(:,2),'LineWidth',2);
+    hold on
+    plot(t(:,1),F_COM_hippull(:,2),'LineWidth',2);
+    plot(t(:,1),F_COM_hipheel(:,2),'LineWidth',2);
+    plot(t(:,1),F_COM_hiptoe(:,2),'LineWidth',2);
+    plot(t(:,1),F_COM_all(:,2),'LineWidth',2);
+    
+    hold off
+    xlim([0 time_lim]);
+    %ylim([-6 6]);
+    % legend('Heel-$F_x$','Heel-$F_y$','Toe-$F_x$','Toe-$F_y$', 'Interpreter', 'latex', 'FontSize',20,'Location','best');
+    legend('$up$','$pull$','$heel$','$toe$','$all$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
+    xlabel('Time [s]');
+    ylabel('Force [N]');
+    if graph_save == true
+        exportgraphics(gca, [save_path name '_forcehip[2].pdf'], 'ContentType', 'vector');
+    end
+
 end

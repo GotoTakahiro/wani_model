@@ -1,5 +1,5 @@
 %外力のデータを格納
-function solve_EOM = solve_EOM2(tmax,tspace,tspan,initial_condition,x_fixed,y_fixed,k_ground,c_ground,mu,l_link_list,l_muscle_list,limit_list,m_list,default_wire_k,default_wire_c,g,t_CFL,k_frame,c_frame,default_frame_angle,filename,end_CFL,CFL_alpha,t_end_exp,default_CFL,gain_list)
+function solve_EOM = solve_EOM3(tmax,tspace,tspan,initial_condition,x_fixed,y_fixed,k_ground,c_ground,mu,l_link_list,l_muscle_list,limit_list,m_list,default_wire_k,default_wire_c,g,t_CFL,k_frame,c_frame,default_frame_angle,filename,end_CFL,CFL_alpha,t_end_exp,default_CFL,gain_list)
 
     t_message = 0.5;
 
@@ -38,7 +38,7 @@ function solve_EOM = solve_EOM2(tmax,tspace,tspan,initial_condition,x_fixed,y_fi
     pullForce_y=0;
     T_gravity_all=zeros(60,1);
     F_all=zeros(5,1);
-    T_all=zeros(94,1);
+    T_all=zeros(93,1);
 
 
     data_accel_GRF(1,:) = [0, zeros(1,10), zeros(1,6)];
@@ -54,7 +54,7 @@ function solve_EOM = solve_EOM2(tmax,tspace,tspan,initial_condition,x_fixed,y_fi
     data_l_CFL(1,:) = 0;
     data_T_gravity_all(1,:)=zeros(1,60);
     data_F_all(1,:)=zeros(1,5);
-    data_T_all(1,:)=zeros(1,94);
+    data_T_all(1,:)=zeros(1,93);
 
     function [ode, output] = getHandles()
         ode = @func_EOM;
@@ -67,13 +67,17 @@ function solve_EOM = solve_EOM2(tmax,tspace,tspan,initial_condition,x_fixed,y_fi
             end
 
             %目標CFL長さの設定（CFLを徐々に縮めていく）
-            if t < t_CFL
+            if t < t_CFL %t_CFL = 1;
                 target_CFL = default_CFL;
-            elseif t >= t_CFL && t < end_CFL
+            elseif t >= t_CFL && t < end_CFL %end_CFL = 9
                 target_CFL = default_CFL - CFL_alpha*(t-t_CFL);
-            elseif t >= end_CFL
-                target_CFL = default_CFL - CFL_alpha*(end_CFL-t_CFL) - CFL_alpha*(t_end_exp-end_CFL)*(1-exp(-(t-end_CFL)));
+            elseif t >= end_CFL && t < t_end_exp  %t_end_exp = 10;
+                target_CFL = default_CFL - CFL_alpha*(end_CFL-t_CFL) - CFL_alpha*(1-exp(-(t-end_CFL))); %(t_end_exp-end_CFL)
+            elseif t >= t_end_exp
+                target_CFL = default_CFL - CFL_alpha*(end_CFL-t_CFL)- CFL_alpha*(1-exp(-(t_end_exp-end_CFL)));
             end
+
+
             % CFLの収縮速度誤差の計算．
             % derror_CFLはCFLの収縮速度誤差．CFLの目標長さの式（論文参照）を時間微分したものから得る．
             error_CFL = target_CFL - q(10);
@@ -82,8 +86,10 @@ function solve_EOM = solve_EOM2(tmax,tspace,tspan,initial_condition,x_fixed,y_fi
                 derror_CFL = 0;
             elseif t >= t_CFL && t < end_CFL
                 derror_CFL = (- CFL_alpha) - q(20);
-            elseif t >= end_CFL
-                derror_CFL = (- CFL_alpha*(t_end_exp-end_CFL)*exp(-(t-end_CFL))) - q(20);
+            elseif t >= end_CFL && t < t_end_exp
+                derror_CFL = (- CFL_alpha*exp(-(t-end_CFL))) - q(20); %(t_end_exp-end_CFL)
+            elseif t >= t_end_exp
+                derror_CFL = - q(20);
             end
                 
             % 外力(股関節を引く力，地面反力，支持力)を考えるために必要な値を計算
@@ -97,7 +103,7 @@ function solve_EOM = solve_EOM2(tmax,tspace,tspan,initial_condition,x_fixed,y_fi
 
             % 股関節を後ろに引く力を設定
             if x_hip > x_fixed(1)
-                pullForce_x = -10*(1-exp(-40*(abs(x_hip)))); %x方向に引っ張る力．
+                pullForce_x = 0;%-10*(1-exp(-40*(abs(x_hip)))); %x方向に引っ張る力．
                 pullForce_y = 0;
             else
                 pullForce_x = -k_ground*(x_hip-x_fixed(1)) - c_ground*dx_hip_vec(1); %ストッパー．股関節が初期値位置よりも後ろに動かないようにする．
@@ -131,18 +137,22 @@ function solve_EOM = solve_EOM2(tmax,tspace,tspan,initial_condition,x_fixed,y_fi
             %ワイヤ張力によるトルクと，拘束力によるトルクの計算
             T_all = calc_torque_force_all(l_link_list, l_muscle_list, k_list, c_list,limit_list, q(1:10),q(11:20), gain_list, error_CFL, int_error_CFL, derror_CFL);
             % 外力ベクトル．地面反力なども考慮し，各一般化座標に作用するトルクを計算．
-            Q = External_force_matrix(GRF,l_link_list,q(1:10),gain_list,error_CFL,int_error_CFL,derror_CFL);
+            Q = External_force_matrix(GRF,l_link_list,q(1:10), gain_list, error_CFL, int_error_CFL, derror_CFL);
             %各成分の寄与分を格納
             %⑨，10，股関節を引く力によるトルク
             Q_hip_pull = External_force_matrix(GRF1,l_link_list,q(1:10),gain_list,error_CFL,int_error_CFL,derror_CFL);
             %11,股関節を支えるトルク
             Q_hip_up = External_force_matrix(GRF2,l_link_list,q(1:10),gain_list,error_CFL,int_error_CFL,derror_CFL);
             %12,かかとで発生する地面反力によるトルク
-            Q_heel = External_force_matrix(GRF3,l_link_list,q(1:10),gain_list,error_CFL,int_error_CFL,derror_CFL);
+            Q_heel = External_force_matrix(GRF3,l_link_list,q(1:10), gain_list,error_CFL,int_error_CFL,derror_CFL);
             %13,つま先で発生する地面反力によるトルク
             Q_toe = External_force_matrix(GRF4,l_link_list,q(1:10),gain_list,error_CFL,int_error_CFL,derror_CFL);
+            
+            %Q_GE=Q_GE_calc(l_link_list,l_muscle_list,k_list,c_list, q(1:10),q(11:20));
             % 一般化座標の微分．1-10が速度，11-20が加速度．
+
             dqdt = [q(11);q(12);q(13);q(14);q(15);q(16);q(17);q(18);q(19);q(20);M\(-C+G+D+Q);error_CFL];
+
             dqdt_rec = dqdt(11:20,1).'; %一般化加速度を記録
 
         end
@@ -177,8 +187,6 @@ function solve_EOM = solve_EOM2(tmax,tspace,tspan,initial_condition,x_fixed,y_fi
                     data_T_gravity_all(end+1,:)=T_gravity_all.';
                     data_F_all(end+1,:)=F_all.';
                     data_T_all(end+1,:)=T_all.';
-
-
 
                 else
                     data_accel_GRF(end+1,:) = [t, dqdt_rec, GRF.'];

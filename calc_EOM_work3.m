@@ -1,3 +1,4 @@
+%F_GEの作用を検証するためのプログラム
 clear all
 
 %%%%%%%%%%%
@@ -186,7 +187,7 @@ L_Ci_dis = sqrt((x_4th_troch - x2)^2 + (y_4th_troch - y2)^2) - L_Ci;
 L_CFLT_dis = sqrt((x3 - x2)^2 + (y3- y2)^2) - L_CFLT;
 L_GEo_dis = sqrt((x3 - x_GE_origin)^2 + (y3 - y_GE_origin)^2) - L_GEo;
 % M3（論文ではM2）からプーリに引かれるワイヤの長さと，ワイヤとプーリの接点から足底（GE停止点）までの円弧で長さを評価．
-L_GE_dis = (sqrt((x3 - x_M3_to_pulley)^2 + (y3 - y_M3_to_pulley)^2) + r*angle_wire_pulley) - L_GE; 
+L_GE_dis = (sqrt((x3 - x_M3_to_pulley)^2 + (y3 - y_M3_to_pulley)^2) + r*angle_wire_pulley) - L_GE;
 L_GE_present = (sqrt((x3 - x_M3_to_pulley)^2 + (y3 - y_M3_to_pulley)^2) + r*angle_wire_pulley);
 L_ankle_ex = theta4 - ankle_limit_ex;
 L_ankle_flex = ankle_limit_flex - theta4;
@@ -206,12 +207,17 @@ F_Ci_spring_vec = F_Ci_spring*uvec_4thtro_to_m2;
 F_CFLT_spring_vec = F_CFLT_spring*uvec_m2_to_m3;
 F_GEo_spring_vec = F_GEo_spring*uvec_GEo_to_m3;
 F_GE_spring_vec = F_GE_spring*uvec_toe_to_pulley;
+%GEがM3で作用するトルクの計算
+F_GE_spring_vec_M3 = F_GE_spring*uvec_m3_to_pulley;
+%T_GE=jacobian([x3; y3], q).'*F_GE_spring_vec_M3;
+%厳密なGEによる発生トルクの計算
+T_GE=-F_GE_spring*jacobian(L_GE_present, q).';
 
 %Spring energy，弾性エネルギーの計算
 U_Ci = 1/2*k_Ci*L_Ci_dis^2;
 U_CFLT = 1/2*k_CFLT*L_CFLT_dis^2;
 U_GEo = 1/2*k_GEo*L_GEo_dis^2;
-U_GE = 1/2*k_GE*L_GE_dis^2;
+U_GE =0;% 1/2*k_GE*L_GE_dis^2;
 U_ankle_flex = 1/2*k_ankle_flex*L_ankle_flex^2;
 U_ankle_ex = 1/2*k_ankle_ex*L_ankle_ex^2;
 U_frame_spring = 1/2*k_frame*L_frame_dis^2;
@@ -277,10 +283,6 @@ L = T - U - U_spring;
 M = jacobian(jacobian(L, dq), dq);
 C = jacobian(jacobian(L, dq), q)*dq;
 G = jacobian(L, q).';
-
-G_GE = -jacobian(U_GE, q).';
-
-%G_GE = simplify(G_GE);
 %話の単純化のためプーリーの粘性力を0に
 D = D_m2 + D_m3 + D_4thtro + D_GEo  + Jac_D_lim; %+ D_GE_pulley
 
@@ -300,7 +302,9 @@ Q_hip = Jac_hip.'*F_hip;
 Q_toe = Jac_toe.'*F_toe;
 Q_heel = Jac_heel.'*F_heel;
 Q_CFL = [0; 0; 0; 0; 0; 0; 0; 0; 0; F_CFL_PID];
-Q = Q_hip + Q_toe + Q_heel + Q_CFL;
+%GEがtheta4に対して発生させるトルクを計算
+Q_GE = [0; 0; 0; 0; 0; 0; 0; -k_GE*L_GE_dis*r; 0; 0];
+Q = Q_hip + Q_toe + Q_heel + Q_CFL+T_GE;
 
 %張力のリストへの格納
 F_Ci = F_Ci_spring;
@@ -324,6 +328,7 @@ torque_muscle = torque_4th_troch + torque_GE_origin + torque_GE_insertion;
 COM_x = (M1*x1 + M2*x2 + M3*x3 + M_frame*x_frame_CoM + M_fem*x_fem_CoM + M_tib*x_tib_CoM + M_met*x_met_CoM)/(M1 + M2 + M3 + M_frame + M_fem + M_tib + M_met);
 COM_y = (M1*y1 + M2*y2 + M3*y3 + M_frame*y_frame_CoM + M_fem*y_fem_CoM + M_tib*y_tib_CoM + M_met*y_met_CoM)/(M1 + M2 + M3 + M_frame + M_fem + M_tib + M_met);
 COM = [COM_x; COM_y];
+
 
 %②F_Ciの発揮力（伸展方向を正ととる，M2が基準点）
 %相対速度を求める
@@ -384,8 +389,6 @@ T_GE_toe_pulley=jacobian([x_toe_to_pulley; y_toe_to_pulley], q).'*(-F_GE_all_vec
 T_GE_M3_pulley=jacobian([x_M3_to_pulley; y_M3_to_pulley], q).'*(-F_GE_all_vec);
 %F_GEがプーリーに対して生じさせるトルク
 T_GE_pulley=F_GE_all*r;
-%厳密なGEによる一般化力の求め方 
-G_GE_2 = F_GE_all*jacobian(L_GE_present, q).';
 
 %⑥frame(theta1)の角度を固定しようとする拘束力（M1に直接作用するトルク）
 T_frame = -k_frame*L_frame_dis-c_frame*dL_frame_dis;
@@ -421,35 +424,35 @@ T_gravity_all=[Torque_M2;Torque_M3;Torque_frame;Torque_fem;Torque_tib;Torque_met
 matlabFunction(T_gravity_all,'File','calc_torque_gravity_all', 'Vars', {m_list,l_link_list, l_muscle_list, q,g});
 
 
-% disp('writing...')
-% matlabFunction(M,'File','Inertial_matrix', 'Vars', {m_list, l_link_list, q});
-% matlabFunction(C,'File','Coriolis_matrix', 'Vars', {m_list, l_link_list, q, dq});
-% matlabFunction(G,'File','Stiffness_matrix', 'Vars', {m_list, l_link_list, l_muscle_list, k_list, limit_list, g, q, dq});
-% matlabFunction(D,'File','Damping_matrix', 'Vars', {l_link_list, c_list, q, dq});
-% matlabFunction(Q,'File','External_force_matrix', 'Vars', {F_list, l_link_list, q, gain_list, error_CFL, int_error_CFL, derror_CFL});
-% matlabFunction(dx_toe_vec,'File','calc_dx_toe_vec', 'Vars', {l_link_list, q, dq});
-% matlabFunction(dx_heel_vec,'File','calc_dx_heel_vec', 'Vars', {l_link_list, q, dq});
-% matlabFunction(dx_hip_vec,'File','calc_dx_hip_vec', 'Vars', {l_link_list, q, dq});
-% matlabFunction(Coordinate_4th_troch,'File','calc_coordinate_4th_troch', 'Vars', {l_link_list, q});
-% matlabFunction(Coordinate_GE_origin,'File','calc_coordinate_GE_origin', 'Vars', {l_link_list, q}); 
-% matlabFunction(coodinate_M3_to_pulley,'File','calc_coordinate_M3_to_pulley', 'Vars', {l_link_list, q});
-% matlabFunction(coodinate_toe_to_pulley,'File','calc_coordinate_toe_to_pulley', 'Vars', {l_link_list, q});
-% matlabFunction(angle_wire_pulley,'File','calc_angle_wire_pulley', 'Vars', {l_link_list, q});
-% matlabFunction(cross_wire_pulley,'File','calc_cross_wire_pulley', 'Vars', {l_link_list, q});
-% matlabFunction(y_heel,'File','calc_y_heel', 'Vars', {l_link_list, q});
-% matlabFunction(y_toe,'File','calc_y_toe', 'Vars', {l_link_list, q});
-% matlabFunction(torque_muscle,'File','calc_torque_muscle', 'Vars', {l_link_list, l_muscle_list, k_list, c_list, q, dq});
-% matlabFunction(muscle_tension,'File','calc_muscle_tension', 'Vars', {l_link_list, l_muscle_list, k_list, c_list, q, dq});
-% matlabFunction(COM,'File','calc_COM', 'Vars', {m_list, l_link_list, q});
-% 
-% matlabFunction(F_all,'File','calc_force_all', 'Vars', {l_link_list, l_muscle_list, k_list, c_list, q,dq, gain_list, error_CFL, int_error_CFL, derror_CFL});
-% matlabFunction(T_all,'File','calc_torque_force_all', 'Vars', { l_link_list, l_muscle_list, k_list, c_list,limit_list, q,dq, gain_list, error_CFL, int_error_CFL, derror_CFL});
-% 
-% matlabFunction(dx_frame_CoM_vec, 'File', 'calc_dx_frame_CoM_vec', 'Vars', {m_list,l_link_list, q, dq});
-% matlabFunction(dx_fem_CoM_vec, 'File', 'calc_dx_fem_CoM_vec', 'Vars', {l_link_list, q, dq});
-% matlabFunction(dx_tib_CoM_vec, 'File', 'calc_dx_tib_CoM_vec', 'Vars', {l_link_list, q, dq});
-% matlabFunction(dx_met_CoM_vec, 'File', 'calc_dx_met_CoM_vec', 'Vars', {m_list,l_link_list, q, dq});
-% matlabFunction(J_list, 'File', 'calc_J_list', 'Vars', {m_list, l_link_list});
+disp('writing...')
+matlabFunction(M,'File','Inertial_matrix', 'Vars', {m_list, l_link_list, q});
+matlabFunction(C,'File','Coriolis_matrix', 'Vars', {m_list, l_link_list, q, dq});
+matlabFunction(G,'File','Stiffness_matrix', 'Vars', {m_list, l_link_list, l_muscle_list, k_list, limit_list, g, q, dq});
+matlabFunction(D,'File','Damping_matrix', 'Vars', {l_link_list, c_list, q, dq});
+matlabFunction(Q,'File','External_force_matrix', 'Vars', {F_list, l_link_list, q, k_list,l_muscle_list, gain_list, error_CFL, int_error_CFL, derror_CFL});
+matlabFunction(dx_toe_vec,'File','calc_dx_toe_vec', 'Vars', {l_link_list, q, dq});
+matlabFunction(dx_heel_vec,'File','calc_dx_heel_vec', 'Vars', {l_link_list, q, dq});
+matlabFunction(dx_hip_vec,'File','calc_dx_hip_vec', 'Vars', {l_link_list, q, dq});
+matlabFunction(Coordinate_4th_troch,'File','calc_coordinate_4th_troch', 'Vars', {l_link_list, q});
+matlabFunction(Coordinate_GE_origin,'File','calc_coordinate_GE_origin', 'Vars', {l_link_list, q}); 
+matlabFunction(coodinate_M3_to_pulley,'File','calc_coordinate_M3_to_pulley', 'Vars', {l_link_list, q});
+matlabFunction(coodinate_toe_to_pulley,'File','calc_coordinate_toe_to_pulley', 'Vars', {l_link_list, q});
+matlabFunction(angle_wire_pulley,'File','calc_angle_wire_pulley', 'Vars', {l_link_list, q});
+matlabFunction(cross_wire_pulley,'File','calc_cross_wire_pulley', 'Vars', {l_link_list, q});
+matlabFunction(y_heel,'File','calc_y_heel', 'Vars', {l_link_list, q});
+matlabFunction(y_toe,'File','calc_y_toe', 'Vars', {l_link_list, q});
+matlabFunction(torque_muscle,'File','calc_torque_muscle', 'Vars', {l_link_list, l_muscle_list, k_list, c_list, q, dq});
+matlabFunction(muscle_tension,'File','calc_muscle_tension', 'Vars', {l_link_list, l_muscle_list, k_list, c_list, q, dq});
+matlabFunction(COM,'File','calc_COM', 'Vars', {m_list, l_link_list, q});
+
+matlabFunction(F_all,'File','calc_force_all', 'Vars', {l_link_list, l_muscle_list, k_list, c_list, q,dq, gain_list, error_CFL, int_error_CFL, derror_CFL});
+matlabFunction(T_all,'File','calc_torque_force_all', 'Vars', { l_link_list, l_muscle_list, k_list, c_list,limit_list, q,dq, gain_list, error_CFL, int_error_CFL, derror_CFL});
+
+matlabFunction(dx_frame_CoM_vec, 'File', 'calc_dx_frame_CoM_vec', 'Vars', {m_list,l_link_list, q, dq});
+matlabFunction(dx_fem_CoM_vec, 'File', 'calc_dx_fem_CoM_vec', 'Vars', {l_link_list, q, dq});
+matlabFunction(dx_tib_CoM_vec, 'File', 'calc_dx_tib_CoM_vec', 'Vars', {l_link_list, q, dq});
+matlabFunction(dx_met_CoM_vec, 'File', 'calc_dx_met_CoM_vec', 'Vars', {m_list,l_link_list, q, dq});
+matlabFunction(J_list, 'File', 'calc_J_list', 'Vars', {m_list, l_link_list});
 %matlabFunction(momentum_list, 'File', 'calc_momentum_list', 'Vars', {m_list, l_link_list, q, dq});
 %matlabFunction(angular_moment_list, 'File', 'calc_angular_moment_list', 'Vars', {m_list, l_link_list, q, dq});
 %matlabFunction(momentum_COM_list, 'File', 'calc_momentum_COM_list', 'Vars', {m_list, l_link_list, q, dq});

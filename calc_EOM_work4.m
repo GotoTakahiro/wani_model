@@ -1,3 +1,6 @@
+%GEのワイヤ張力を正確に議論するためにGEの粘性項もエネルギー散逸項に含めるモデル
+%GEのワイヤ張力がプーリーの中心に作用する垂直抗力についても考慮する
+
 clear all
 
 %%%%%%%%%%%
@@ -143,6 +146,12 @@ x_toe_to_pulley = (r^2*x_toe - r^2*x_ankle + x_ankle*x_toe^2 - 2*x_ankle^2*x_toe
 y_toe_to_pulley = (r^2*y_toe - r^2*y_ankle + x_ankle^2*y_ankle + x_toe^2*y_ankle + y_ankle*y_toe^2 - 2*y_ankle^2*y_toe + y_ankle^3 + r*x_ankle*(- r^2 + x_ankle^2 - 2*x_ankle*x_toe + x_toe^2 + y_ankle^2 - 2*y_ankle*y_toe + y_toe^2)^(1/2) - r*x_toe*(- r^2 + x_ankle^2 - 2*x_ankle*x_toe + x_toe^2 + y_ankle^2 - 2*y_ankle*y_toe + y_toe^2)^(1/2) - 2*x_ankle*x_toe*y_ankle)/(x_ankle^2 - 2*x_ankle*x_toe + x_toe^2 + y_ankle^2 - 2*y_ankle*y_toe + y_toe^2);
 coodinate_toe_to_pulley = [x_toe_to_pulley; y_toe_to_pulley];
 
+%プーリーの2箇所ある接点の中点の座標を求める
+midpoint_pulley_x=(x_M3_to_pulley+x_toe_to_pulley)/2;
+midpoint_pulley_y=(y_M3_to_pulley+y_toe_to_pulley)/2;
+%その中点からプーリー中心方向への単位ベクトルを求める
+uvec_midpoint_ankle=[(x_ankle-midpoint_pulley_x); (y_ankle-midpoint_pulley_y)]/sqrt((x_ankle-midpoint_pulley_x)^2 + (y_ankle-midpoint_pulley_y)^2);
+
 %calculate beta angle (Angle of wire through pulley)
 %プーリーにかかっているワイヤの角度を求める
 vec_pulley_to_M3 = [x3-x_M3_to_pulley; y3-y_M3_to_pulley];
@@ -218,26 +227,40 @@ U_frame_spring = 1/2*k_frame*L_frame_dis^2;
 U_spring = U_Ci + U_CFLT + U_GEo + U_GE + U_ankle_flex + U_ankle_ex + U_frame_spring;
 
 %減衰関数を計算するために，ダンパに沿う方向の速度の(x,y)成分を求める
+%M2起点の速度
 v_m2_to_4thtro = dot([dx2; dy2], -uvec_4thtro_to_m2);
 v_4thtro_to_m2 = dot([dx_4th_troch; dy_4th_troch], uvec_4thtro_to_m2);
+%M3起点の速度
 v_m2_to_m3 = dot([dx2; dy2], uvec_m2_to_m3);
 v_m3_to_m2 = dot([dx3; dy3], -uvec_m2_to_m3);
+%M3起点の速度
 v_m3_to_GEo = dot([dx3; dy3], -uvec_GEo_to_m3);
 v_GEo_to_m3 = dot([dx_GE_origin; dy_GE_origin], uvec_GEo_to_m3);
+%接点起点の速度
 v_m3_to_pulley = dot([dx3; dy3], uvec_m3_to_pulley);
 v_pulley_to_m3 = dot([dx_M3_to_pulley; dy_M3_to_pulley], -uvec_m3_to_pulley);
+%GEの長さ変化の速度を求める
+v_GE1=(v_pulley_to_m3+v_m3_to_pulley)+r*dtheta4;
 
 % 質点や起始停止点に作用する減衰力を計算+(x,y)成分に分離
+%M2周りの粘性力の和
 F_m2_damper_vec = - c_Ci*(v_m2_to_4thtro+v_4thtro_to_m2)*(-uvec_4thtro_to_m2) - c_CFLT*(v_m2_to_m3+v_m3_to_m2)*uvec_m2_to_m3;
-F_m3_damper_vec = - c_CFLT*(v_m3_to_m2+v_m2_to_m3)*(-uvec_m2_to_m3) - c_GEo*(v_m3_to_GEo+v_GEo_to_m3)*(-uvec_GEo_to_m3) - c_GE*(v_m3_to_pulley+v_pulley_to_m3)*uvec_m3_to_pulley;
+%M3周りの粘性力の和
+F_m3_damper_vec = - c_CFLT*(v_m3_to_m2+v_m2_to_m3)*(-uvec_m2_to_m3) - c_GEo*(v_m3_to_GEo+v_GEo_to_m3)*(-uvec_GEo_to_m3);% - c_GE*(v_m3_to_pulley+v_pulley_to_m3)*uvec_m3_to_pulley;
+%4thtro周りの粘性力の和
 F_4thtro_damper_vec = - c_Ci*(v_4thtro_to_m2+v_m2_to_4thtro)*uvec_4thtro_to_m2;
+%GEo周りの粘性力の和
 F_GEo_damper_vec = - c_GEo*(v_GEo_to_m3+v_m3_to_GEo)*uvec_GEo_to_m3;
-F_GE_pulley_damper_vec = - c_GE*(v_pulley_to_m3+v_m3_to_pulley)*(-uvec_m3_to_pulley);
+%M3で働くGEの粘性項
+F_GE_pulley_M3_damper_vec = c_GE*dot([dx_M3_to_pulley-dx3; dy_M3_to_pulley-dy3], uvec_m3_to_pulley)*(uvec_m3_to_pulley);
+%GEの停止点で働くGEの粘性項
+F_GE_pulley_toe_damper_vec = c_GE*dot([dx3-dx_M3_to_pulley; dy3-dy_M3_to_pulley], -uvec_m3_to_pulley)*(-uvec_toe_to_pulley);
 %各ワイヤが発揮する減衰力
 F_Ci_damper = c_Ci*(v_m2_to_4thtro+v_4thtro_to_m2);
 F_CFLT_damper = c_CFLT*(v_m2_to_m3+v_m3_to_m2);
 F_GEo_damper = c_GEo*(v_m3_to_GEo+v_GEo_to_m3);
-F_GE_pulley_damper = c_GE*(v_m3_to_pulley+v_pulley_to_m3);
+%F_GE_pulley_damper = c_GE*(v_m3_to_pulley+v_pulley_to_m3);
+F_GE_pulley_damper=c_GE*v_GE1;
 
 %減衰力が作用する点のヤコビアンを計算
 jac_m2 = jacobian([x2; y2], q);
@@ -252,7 +275,9 @@ D_m2 = jac_m2.'*F_m2_damper_vec;
 D_m3 = jac_m3.'*F_m3_damper_vec;
 D_4thtro = jac_4th_troch.'*F_4thtro_damper_vec;
 D_GEo = jac_GE_origin.'*F_GEo_damper_vec;
-D_GE_pulley = jac_m3_to_pulley.'*F_GE_pulley_damper_vec;
+D_GE_pulley1 = jac_m3_to_pulley.'*F_GE_pulley_M3_damper_vec;
+D_GE_pulley2 = jac_GE_insertion.'*F_GE_pulley_toe_damper_vec;
+D_GE_pulley=D_GE_pulley1+D_GE_pulley2;
 
 %粘弾性エネルギーの計算
 dL_ankle_flex = dtheta4;
@@ -262,12 +287,29 @@ dL_l_CFL = dl_CFL;
 D_ankle_flex = 1/2*c_ankle_flex*dL_ankle_flex^2;
 D_ankle_ex = 1/2*c_ankle_ex*dL_ankle_ex^2;
 D_frame = 1/2*c_frame*dL_frame_dis^2;
+D_GE = 1/2*c_GE*v_GE1^2;
 %l_CFLの粘弾性による粘弾性エネルギーの計算
 D_l_CFL = 1/2*c_CFL*dL_l_CFL^2; %c_CFL=0のため，0となる
 %エネルギー散逸
-D_lim = D_ankle_flex+D_ankle_ex + D_frame;
+D_lim = D_ankle_flex+D_ankle_ex + D_frame; %GEの散逸項は分離
 %一般化力への変換，単位はトルク
 Jac_D_lim = jacobian(-D_lim, dq).';
+
+
+
+
+%GEについては複雑なため，個別に求める
+G_GE_1 = jacobian(-U_GE, q).'; %弾性項
+Jac_D_GE = jacobian(-D_GE, dq).'; %粘性項
+%GEの張力がankleの中心に対する垂直抗力の大きさ
+F_GE_ankle = 2*(k_GE*L_GE_dis+c_GE*v_GE1)*sin(angle_wire_pulley/2);
+F_GE_ankle_vec=F_GE_ankle*uvec_midpoint_ankle;
+%GEの張力がankle（プーリー）に対して働かせる垂直抗力による一般化力の計算，独立して計算
+%幾何拘束（ワイヤーが常にプーリーに接することはつまり，
+% ワイヤー張力によるプーリー支える力が，常にプーリー中心にかかるその他の力と釣り合っているという条件が成立していることを仮定）
+Q_GE_ankle=jacobian([x_ankle;y_ankle],q).'*F_GE_ankle_vec;
+%GEの両端に生じる張力による一般化力
+T_GE_all=G_GE_1+Jac_D_GE;
 
 %Lagrangian
 %リンク系の運動E-リンク系の位置E-筋腱が元の長さを保とうとする張力による弾性E
@@ -277,12 +319,10 @@ L = T - U - U_spring;
 M = jacobian(jacobian(L, dq), dq);
 C = jacobian(jacobian(L, dq), q)*dq;
 G = jacobian(L, q).';
+%エネルギー拡散項の計算
+D = D_m2 + D_m3 + D_4thtro + D_GEo  + Jac_D_lim + Jac_D_GE;  %+ D_GE_pulley
 
-G_GE = -jacobian(U_GE, q).';
 
-%G_GE = simplify(G_GE);
-%話の単純化のためプーリーの粘性力を0に
-D = D_m2 + D_m3 + D_4thtro + D_GEo  + Jac_D_lim; %+ D_GE_pulley
 
 %地面反力の計算
 Jac_hip = jacobian([x_hip; y_hip], q);
@@ -296,6 +336,7 @@ F_heel = [F_heel_x; F_heel_y];
 F_list = [F_hip; F_heel; F_toe];
 
 % 仮想仕事の原理で各一般化座標に対する地面反力による一般化力を計算，単位はトルク
+%ここにはGEからプーリーに作用する垂直抗力による一般化力項は含めない
 Q_hip = Jac_hip.'*F_hip;
 Q_toe = Jac_toe.'*F_toe;
 Q_heel = Jac_heel.'*F_heel;
@@ -314,23 +355,24 @@ F_CFLT_vec = F_CFLT_spring_vec;
 F_GE_origin_vec = F_GEo_spring_vec;
 F_GE_insertion_vec = F_GE_spring_vec;
 
-%筋腱の弾性力による一般化力を計算，単位はトルク
+%筋腱の弾性力によるリンクに作用する一般化力を計算，単位はトルク
 torque_4th_troch = jac_4th_troch.'*F_Ci_vec;
 torque_GE_origin = jac_GE_origin.'*F_GE_origin_vec;
 torque_GE_insertion = jac_GE_insertion.'*F_GE_insertion_vec;
-torque_muscle = torque_4th_troch + torque_GE_origin + torque_GE_insertion;
+torque_GE = G_GE_1; %GEの弾性力によって発生する一般化力　ただし，ワイヤーからプーリーへの垂直抗力成分は除く
+torque_muscle = torque_4th_troch + torque_GE_origin + torque_GE;
 
 %全体の重心を計算
 COM_x = (M1*x1 + M2*x2 + M3*x3 + M_frame*x_frame_CoM + M_fem*x_fem_CoM + M_tib*x_tib_CoM + M_met*x_met_CoM)/(M1 + M2 + M3 + M_frame + M_fem + M_tib + M_met);
 COM_y = (M1*y1 + M2*y2 + M3*y3 + M_frame*y_frame_CoM + M_fem*y_fem_CoM + M_tib*y_tib_CoM + M_met*y_met_CoM)/(M1 + M2 + M3 + M_frame + M_fem + M_tib + M_met);
 COM = [COM_x; COM_y];
-
+Jac_COM=jacobian(COM ,q);
 %②F_Ciの発揮力（伸展方向を正ととる，M2が基準点）
 %相対速度を求める
 rv_m2_to_4thtro = [dx_4th_troch-dx2;dy_4th_troch-dy2];
 %M2 to 4th方向の速度成分
 rv_Ci = dot(rv_m2_to_4thtro, -uvec_4thtro_to_m2);
-F_Ci_all = -k_Ci*L_Ci_dis-c_Ci*rv_Ci;
+F_Ci_all = k_Ci*L_Ci_dis+c_Ci*rv_Ci;
 %x,y成分に分解
 F_Ci_all_vec = F_Ci_all*(-uvec_4thtro_to_m2);
 %F_Ciが4th_trochで発生させるトルク
@@ -344,7 +386,7 @@ T_Ci_M2=jacobian([x2; y2], q).'*F_Ci_all_vec;
 rv_m2_to_m3 = [dx3-dx2;dy3-dy2];
 %M2 to M3方向の速度成分
 rv_CFLT = dot(rv_m2_to_m3, uvec_m2_to_m3);
-F_CFLT_all = -k_CFLT*L_CFLT_dis-c_CFLT*rv_CFLT;
+F_CFLT_all = k_CFLT*L_CFLT_dis+c_CFLT*rv_CFLT;
 %x,y成分に分解
 F_CFLT_all_vec = F_CFLT_all*uvec_m2_to_m3;
 %F_CFLTがM2で発生させるトルク
@@ -357,11 +399,11 @@ T_CFLT_M3=jacobian([x3; y3], q).'*(-F_CFLT_all_vec);
 rv_m3_to_GEo = [dx_GE_origin-dx3;dy_GE_origin-dy3];
 %M3 to GEo方向の速度成分
 rv_GEo = dot(rv_m3_to_GEo, -uvec_GEo_to_m3);
-F_GEo_all = -k_GEo*L_GEo_dis-c_GEo*rv_GEo;
+F_GEo_all = k_GEo*L_GEo_dis+c_GEo*rv_GEo;
 %x,y成分に分解
 F_GEo_all_vec = F_GEo_all*(-uvec_GEo_to_m3);
 %F_GEoがM3で発生させるトルク
-T_GEo_M2=jacobian([x3; y3], q).'*F_GEo_all_vec;
+T_GEo_M3=jacobian([x3; y3], q).'*F_GEo_all_vec;
 %F_GEoがGEoriginで発生させるトルク
 T_GEo_GEorigin=jacobian([x_GE_origin; y_GE_origin], q).'*(-F_GEo_all_vec);
 
@@ -370,21 +412,21 @@ T_GEo_GEorigin=jacobian([x_GE_origin; y_GE_origin], q).'*(-F_GEo_all_vec);
 rv_m3_to_GE = [dx_M3_to_pulley-dx3;dy_M3_to_pulley-dy3];
 %M3 to GEo方向の速度成分
 rv_GE = dot(rv_m3_to_GE, uvec_m3_to_pulley);
-%一端粘性項は0にする
-F_GE_all = -k_GE*L_GE_dis; %-c_GE*rv_GE;
+%F_GE
+F_GE_all = k_GE*L_GE_dis+c_GE*v_GE1;
 %x,y成分に分解
 F_GE_all_vec = F_GE_all*uvec_m3_to_pulley;
-F_GE_all_vec2 = F_GE_all*uvec_pulley_to_toe;
+%F_GE_all_vec2 = F_GE_all*uvec_pulley_to_toe;
 %F_GEがM3で発生させるトルク
 T_GE_M3=jacobian([x3; y3], q).'*F_GE_all_vec;
 %F_GEがtoe_pulleyで発生させるトルク
 %力の向きもpulley_to_toeを正方向にとったとき
-T_GE_toe_pulley=jacobian([x_toe_to_pulley; y_toe_to_pulley], q).'*(-F_GE_all_vec2);
+%T_GE_toe_pulley=jacobian([x_toe_to_pulley; y_toe_to_pulley], q).'*(-F_GE_all_vec2);
 %F_GEがM3_pulleyで発生させるトルク
-T_GE_M3_pulley=jacobian([x_M3_to_pulley; y_M3_to_pulley], q).'*(-F_GE_all_vec);
+%T_GE_M3_pulley=jacobian([x_M3_to_pulley; y_M3_to_pulley], q).'*(-F_GE_all_vec);
 %F_GEがプーリーに対して生じさせるトルク
 T_GE_pulley=F_GE_all*r;
-%厳密なGEによる一般化力の求め方 
+%厳密なGEの弾性力による一般化力の求め方 
 G_GE_2 = F_GE_all*jacobian(L_GE_present, q).';
 
 %⑥frame(theta1)の角度を固定しようとする拘束力（M1に直接作用するトルク）
@@ -395,7 +437,7 @@ T_ankle_flex = -k_ankle_flex*L_ankle_flex-c_ankle_flex*dL_ankle_flex;
 T_ankle_ex = -k_ankle_ex*L_ankle_ex-c_ankle_ex*dL_ankle_ex;
 %ワイヤ張力とトルクの格納
 F_all=[F_CFL_PID;F_Ci_all;F_CFLT_all;F_GEo_all;F_GE_all];
-T_all=[T_Ci_4th;T_Ci_M2;T_CFLT_M2;T_CFLT_M3;T_GEo_M2;T_GEo_GEorigin;T_GE_M3;T_GE_toe_pulley;T_GE_M3_pulley;T_frame;T_ankle_flex;T_ankle_ex;T_GE_pulley];
+T_all=[T_Ci_4th;T_Ci_M2;T_CFLT_M2;T_CFLT_M3;T_GEo_M3;T_GEo_GEorigin;T_GE_M3;T_GE_all;Q_GE_ankle;T_frame;T_ankle_flex;T_ankle_ex];
 
 %重力項のトルク計算
 %フレーム＋股関節
@@ -418,15 +460,55 @@ Mg_M3=[0;-M3*g];
 Torque_M3=jacobian([x3;y3], q).'*Mg_M3;
 %トルクの格納
 T_gravity_all=[Torque_M2;Torque_M3;Torque_frame;Torque_fem;Torque_tib;Torque_met];
-matlabFunction(T_gravity_all,'File','calc_torque_gravity_all', 'Vars', {m_list,l_link_list, l_muscle_list, q,g});
+
+%運動量の計算
+momentum_frame_COM_x = (M_frame+M_hip)*dx_frame_CoM;
+momentum_frame_COM_y = (M_frame+M_hip)*dy_frame_CoM;
+momentum_fem_COM_x = M_fem*dx_fem_CoM;
+momentum_fem_COM_y = M_fem*dy_fem_CoM;
+momentum_tib_COM_x = M_tib*dx_tib_CoM;
+momentum_tib_COM_y = M_tib*dy_tib_CoM;
+momentum_met_COM_x = (M_met+M_met_pulley)*dx_met_CoM;
+momentum_met_COM_y = (M_met+M_met_pulley)*dy_met_CoM;
+
+momentum_frame_COM = [momentum_frame_COM_x; momentum_frame_COM_y; 0];
+momentum_fem_COM = [momentum_fem_COM_x; momentum_fem_COM_y; 0];
+momentum_tib_COM = [momentum_tib_COM_x; momentum_tib_COM_y; 0];
+momentum_met_COM = [momentum_met_COM_x; momentum_met_COM_y; 0];
+%原点周りの角運動量（外積）
+momentum_frame_COM_z = cross([x_frame_CoM; y_frame_CoM; 0], [momentum_frame_COM_x; momentum_frame_COM_y; 0]);
+momentum_frame_COM_z = momentum_frame_COM_z(3);
+momentum_fem_COM_z = cross([x_fem_CoM; y_fem_CoM; 0], [momentum_fem_COM_x; momentum_fem_COM_y; 0]);
+momentum_fem_COM_z = momentum_fem_COM_z(3);
+momentum_tib_COM_z = cross([x_tib_CoM; y_tib_CoM; 0], [momentum_tib_COM_x; momentum_tib_COM_y; 0]);
+momentum_tib_COM_z = momentum_tib_COM_z(3);
+momentum_met_COM_z = cross([x_met_CoM; y_met_CoM; 0], [momentum_met_COM_x; momentum_met_COM_y; 0]);
+momentum_met_COM_z = momentum_met_COM_z(3);
+
+%リンクの角運動量の計算
+angular_momentum_frame = J_frame*dtheta1;
+angular_momentum_fem = J_fem*(dtheta1+dtheta2);
+angular_momentum_tib = J_tib*(dtheta1+dtheta2+dtheta3);
+angular_momentum_met = J_met*(dtheta1+dtheta2+dtheta3+dtheta4);
+%原点まわりの全角運動量
+angular_moment_frame_origin = momentum_frame_COM_z + angular_momentum_frame;
+angular_moment_fem_origin = momentum_fem_COM_z + angular_momentum_fem;
+angular_moment_tib_origin = momentum_tib_COM_z + angular_momentum_tib;
+angular_moment_met_origin = momentum_met_COM_z + angular_momentum_met;
+%計算結果の格納
+momentum_list = [angular_moment_frame_origin; angular_moment_fem_origin; angular_moment_tib_origin; angular_moment_met_origin];
+angular_moment_list = [angular_momentum_frame; angular_momentum_fem; angular_momentum_tib; angular_momentum_met];
+momentum_COM_list = [momentum_frame_COM_x; momentum_frame_COM_y; momentum_fem_COM_x; momentum_fem_COM_y; momentum_tib_COM_x; momentum_tib_COM_y; momentum_met_COM_x; momentum_met_COM_y];
 
 
 % disp('writing...')
+% matlabFunction(T_gravity_all,'File','calc_torque_gravity_all', 'Vars', {m_list,l_link_list, l_muscle_list, q,g});
 % matlabFunction(M,'File','Inertial_matrix', 'Vars', {m_list, l_link_list, q});
 % matlabFunction(C,'File','Coriolis_matrix', 'Vars', {m_list, l_link_list, q, dq});
 % matlabFunction(G,'File','Stiffness_matrix', 'Vars', {m_list, l_link_list, l_muscle_list, k_list, limit_list, g, q, dq});
 % matlabFunction(D,'File','Damping_matrix', 'Vars', {l_link_list, c_list, q, dq});
 % matlabFunction(Q,'File','External_force_matrix', 'Vars', {F_list, l_link_list, q, gain_list, error_CFL, int_error_CFL, derror_CFL});
+% matlabFunction(Q_GE_ankle,'File','Q_GE_calc', 'Vars', {l_link_list,l_muscle_list,k_list,c_list, q,dq});
 % matlabFunction(dx_toe_vec,'File','calc_dx_toe_vec', 'Vars', {l_link_list, q, dq});
 % matlabFunction(dx_heel_vec,'File','calc_dx_heel_vec', 'Vars', {l_link_list, q, dq});
 % matlabFunction(dx_hip_vec,'File','calc_dx_hip_vec', 'Vars', {l_link_list, q, dq});
@@ -450,7 +532,6 @@ matlabFunction(T_gravity_all,'File','calc_torque_gravity_all', 'Vars', {m_list,l
 % matlabFunction(dx_tib_CoM_vec, 'File', 'calc_dx_tib_CoM_vec', 'Vars', {l_link_list, q, dq});
 % matlabFunction(dx_met_CoM_vec, 'File', 'calc_dx_met_CoM_vec', 'Vars', {m_list,l_link_list, q, dq});
 % matlabFunction(J_list, 'File', 'calc_J_list', 'Vars', {m_list, l_link_list});
-%matlabFunction(momentum_list, 'File', 'calc_momentum_list', 'Vars', {m_list, l_link_list, q, dq});
-%matlabFunction(angular_moment_list, 'File', 'calc_angular_moment_list', 'Vars', {m_list, l_link_list, q, dq});
-%matlabFunction(momentum_COM_list, 'File', 'calc_momentum_COM_list', 'Vars', {m_list, l_link_list, q, dq});
-%ht=matlabFunction(momentum_COM_list, 'File', 'calc_momentum_COM_list', 'Vars', {m_list, l_link_list, q, dq});
+% matlabFunction(momentum_list, 'File', 'calc_momentum_list', 'Vars', {m_list, l_link_list, q, dq});
+% matlabFunction(angular_moment_list, 'File', 'calc_angular_moment_list', 'Vars', {m_list, l_link_list, q, dq});
+% matlabFunction(momentum_COM_list, 'File', 'calc_momentum_COM_list', 'Vars', {m_list, l_link_list, q, dq});
