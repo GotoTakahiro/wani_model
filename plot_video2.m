@@ -1,7 +1,7 @@
 % clear;
  close all;
 % clearvars
-load('/Users/goto/Documents/Matlab_goto/crocodile_sim_PID-main/results/plotall3/exp20251028_CFL350_Ci44_CFLT100_GEo35_GE185.mat');
+load('/Users/goto/Documents/Matlab_goto/crocodile_sim_PID-main/results/plotall3/exp20251028_CFL350_Ci44_CFLT100_GEo35_GE185_2.mat');
 % load('results/20240712_MuscleLengthTest_PID/exp20240712_MuscleLengthTest_PID_1125_P50000_I50_D550_CFL350_Ci44_CFLT107_GEo43_GE200.mat');
 % load('results/20240726_init_condition_test_per2mm/exp20240726_init_condition_test_per2mm_223_Hip20_Knee44_CFL350_Ci44_CFLT107_GEo37_GE188.mat');
 % load('results/20240822_for_nolta_paper_rev/knee83/exp20240822_for_nolta_paper_noGE_knee83_CFL350_Ci44_CFLT100_GEo35_GE185.mat')
@@ -59,31 +59,7 @@ for j = 1:size(q,1)
     COM(j,:) = (calc_COM(m_list,l_link_list,general_q))';
 end
 
-% 筋腱の張力，トルク，運動量，角運動量の時系列データを計算
-for i = 1:size(q,1)
-    k_wire = data_k_c_wire(i,2:5); %k_Ci, k_CFLT, k_GEo, k_GE
-    c_wire = data_k_c_wire(i,6:10); %c_Ci, c_CFLT, c_GEo, c_GE
-    
-    general_q = q(i,1:10).';
-    general_dq = q(i,11:20).';
 
-    % 張力，トルク，運動量，角運動量の計算．運動量と角運動量はcal_EOM_work.mで計算した関数を用いている
-    muscle_tension(i,:) = (calc_muscle_tension(l_link_list,l_muscle_list,k_wire.',c_wire.',general_q, general_dq))';
-    torque_muscle(i,:) = (calc_torque_muscle(l_link_list,l_muscle_list,k_wire.',c_wire.',general_q, general_dq))';
-    momentum_list(i,:) = calc_momentum_list(m_list,l_link_list,q(i,1:10).',q(i,11:20).')';
-    angular_moment_list(i,:) = calc_angular_moment_list(m_list,l_link_list,q(i,1:10).',q(i,11:20).')';
-    momentum_COM_list(i,:) = calc_momentum_COM_list(m_list,l_link_list,q(i,1:10).',q(i,11:20).')';
-
-    % -data_Q(:,11)が5以上になったところから最後までを取得
-    if tension_flag == false && -data_Q(i,11) > 5 && i > 200
-        tension_start_index = i;
-        tension_flag = true;
-    end
-end
-
-% 骨格と筋腱の間の角度を計算するための座標を計算．（結局あまり使わなかったので無視してもOK）
-coordinates_x_for_angle = coordinates_x(tension_start_index:end,:);
-coordinates_y_for_angle = coordinates_y(tension_start_index:end,:);
 
 % 仕事の計算
 power = q(50:end,20).*data_Q(50:end,11);
@@ -102,11 +78,11 @@ GE_Color = '#77AC30';
 
 %全ての力を一般化力として扱った時の総トルクを計算
 %theta1
-torque_all=(data_T_all(:,1:10)+data_T_all(:,11:20)+data_T_all(:,21:30)+data_T_all(:,31:40)+data_T_all(:,41:50)+data_T_all(:,51:60)+data_T_all(:,71:80));%+data_T_all(:,81:90));
+torque_all=(data_T_all(:,1:10)+data_T_all(:,11:20)+data_T_all(:,21:30)+data_T_all(:,31:40)+data_T_all(:,41:50)+data_T_all(:,51:60)+data_T_all(:,71:80));
 torque_all=torque_all+data_T_gravity_all(:,1:10)+data_T_gravity_all(:,11:20)+data_T_gravity_all(:,21:30)+data_T_gravity_all(:,31:40)+data_T_gravity_all(:,41:50)+data_T_gravity_all(:,51:60);
-torque_all(:,5)=torque_all(:,5)+data_T_all(:,91);
-torque_all(:,8)=torque_all(:,8)+data_T_all(:,93);
-torque_all=torque_all+data_Q_hip_pull(:,1:10)+data_Q_heel(:,1:10)+data_Q_toe(:,1:10)+data_Q_hip_up(:,1:10);
+%torque_all(:,5)=torque_all(:,5)+data_T_all(:,91);%frameによる拘束トルク
+torque_all(:,8)=torque_all(:,8)+data_T_all(:,93)+data_T_all(:,92);%ankleの拘束トルク
+torque_all=torque_all+data_Q_heel(:,1:10)+data_Q_toe(:,1:10)+data_Q_hip_pull(:,1:10)+data_Q_hip_up(:,1:10);
 
 %一般化力からhipの質点に働く力を逆算するための関数
 %ワイヤー項

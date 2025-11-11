@@ -1,4 +1,4 @@
-%一般化力からhipの質点に働く力を逆算するための関数
+%一般化力からCOMの質点に働く力を逆算するための関数
 function [F] = func_F_COM(q,m_list,l_link_list,Q)
 
     Fp = zeros(2,1);
@@ -18,9 +18,9 @@ function [F] = func_F_COM(q,m_list,l_link_list,Q)
     M_frame=m_list(5);
     M_fem=m_list(6);
     M_tib=m_list(7);
-    M_met_pulley=m_list(8);
-    M_met_rod=m_list(9);
-    M_met=m_list(10);
+    M_met_pulley=0.3;%m_list(8);
+    M_met_rod=0.1;%m_list(9);
+    M_met=0.4;%m_list(10);
     
     J_p=zeros(2,10);
     for i=1:size(q,1)

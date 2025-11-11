@@ -1,5 +1,5 @@
 %外力のデータを格納
-function solve_EOM = solve_EOM3(tmax,tspace,tspan,initial_condition,x_fixed,y_fixed,k_ground,c_ground,mu,l_link_list,l_muscle_list,limit_list,m_list,default_wire_k,default_wire_c,g,t_CFL,k_frame,c_frame,default_frame_angle,filename,end_CFL,CFL_alpha,t_end_exp,default_CFL,gain_list)
+function solve_EOM = solve_EOM4(tmax,tspace,tspan,initial_condition,x_fixed,y_fixed,k_ground,c_ground,mu,l_link_list,l_muscle_list,limit_list,m_list,default_wire_k,default_wire_c,g,t_CFL,k_frame,c_frame,default_frame_angle,filename,end_CFL,CFL_alpha,t_end_exp,default_CFL,gain_list)
 
     t_message = 0.5;
 
@@ -38,7 +38,7 @@ function solve_EOM = solve_EOM3(tmax,tspace,tspan,initial_condition,x_fixed,y_fi
     pullForce_y=0;
     T_gravity_all=zeros(60,1);
     F_all=zeros(5,1);
-    T_all=zeros(93,1);
+    T_all=zeros(113,1);
 
 
     data_accel_GRF(1,:) = [0, zeros(1,10), zeros(1,6)];
@@ -54,7 +54,7 @@ function solve_EOM = solve_EOM3(tmax,tspace,tspan,initial_condition,x_fixed,y_fi
     data_l_CFL(1,:) = 0;
     data_T_gravity_all(1,:)=zeros(1,60);
     data_F_all(1,:)=zeros(1,5);
-    data_T_all(1,:)=zeros(1,93);
+    data_T_all(1,:)=zeros(1,113);
 
     function [ode, output] = getHandles()
         ode = @func_EOM;
@@ -112,8 +112,7 @@ function solve_EOM = solve_EOM3(tmax,tspace,tspan,initial_condition,x_fixed,y_fi
 
             % 筋腱の起始停止点からたるみを考慮．たるんでいればばね定数と粘性係数が０になる．
             [k_list, c_list] = calc_spring_const(q(1:10),l_link_list,l_muscle_list,limit_list,default_wire_k,default_wire_c,k_frame,c_frame);
-            % k_list(2) = 0;
-            % c_list(2) = 0;
+
 
             % 運動方程式の係数行列．calc_EOM_workでシンボリックで計算した後関数化したものを呼び出す．
             M = Inertial_matrix(m_list,l_link_list,q(1:10));

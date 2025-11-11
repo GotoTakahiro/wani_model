@@ -197,8 +197,8 @@ L_GEo_dis = sqrt((x3 - x_GE_origin)^2 + (y3 - y_GE_origin)^2) - L_GEo;
 % M3（論文ではM2）からプーリに引かれるワイヤの長さと，ワイヤとプーリの接点から足底（GE停止点）までの円弧で長さを評価．
 L_GE_dis = (sqrt((x3 - x_M3_to_pulley)^2 + (y3 - y_M3_to_pulley)^2) + r*angle_wire_pulley) - L_GE; 
 L_GE_present = (sqrt((x3 - x_M3_to_pulley)^2 + (y3 - y_M3_to_pulley)^2) + r*angle_wire_pulley);
-L_ankle_ex = theta4 - ankle_limit_ex;
-L_ankle_flex = ankle_limit_flex - theta4;
+L_ankle_ex = theta4 - ankle_limit_ex; %limit_ankle_ex = 120/180*pi;
+L_ankle_flex = theta4 - ankle_limit_flex; %limit_ankle_flex = 10/180*pi; ankle_limit_flex-theta4から修正
 L_frame_dis = theta1 - default_frame_angle;
 %弾性力の計算
 F_Ci_spring = k_Ci*L_Ci_dis;
@@ -367,6 +367,16 @@ COM_x = (M1*x1 + M2*x2 + M3*x3 + M_frame*x_frame_CoM + M_fem*x_fem_CoM + M_tib*x
 COM_y = (M1*y1 + M2*y2 + M3*y3 + M_frame*y_frame_CoM + M_fem*y_fem_CoM + M_tib*y_tib_CoM + M_met*y_met_CoM)/(M1 + M2 + M3 + M_frame + M_fem + M_tib + M_met);
 COM = [COM_x; COM_y];
 Jac_COM=jacobian(COM ,q);
+Jac_ankle=jacobian([x_ankle; y_ankle] ,q);
+
+%①F_CFL_PIDの発揮力（伸展方向を正ととる，M1が基準点）
+%x,y成分に分解
+F_CFL_PID_vec=F_CFL_PID*uvec_m1_to_m2;
+%F_CFLがM1で発生させるトルク
+T_CFL_M1=jacobian([x1; y1], q).'*F_CFL_PID_vec;
+%F_CFLがM2で発生させるトルク
+T_CFL_M2=jacobian([x2; y2], q).'*(-F_CFL_PID_vec);
+
 %②F_Ciの発揮力（伸展方向を正ととる，M2が基準点）
 %相対速度を求める
 rv_m2_to_4thtro = [dx_4th_troch-dx2;dy_4th_troch-dy2];
@@ -437,7 +447,7 @@ T_ankle_flex = -k_ankle_flex*L_ankle_flex-c_ankle_flex*dL_ankle_flex;
 T_ankle_ex = -k_ankle_ex*L_ankle_ex-c_ankle_ex*dL_ankle_ex;
 %ワイヤ張力とトルクの格納
 F_all=[F_CFL_PID;F_Ci_all;F_CFLT_all;F_GEo_all;F_GE_all];
-T_all=[T_Ci_4th;T_Ci_M2;T_CFLT_M2;T_CFLT_M3;T_GEo_M3;T_GEo_GEorigin;T_GE_M3;T_GE_all;Q_GE_ankle;T_frame;T_ankle_flex;T_ankle_ex];
+T_all=[T_Ci_4th;T_Ci_M2;T_CFLT_M2;T_CFLT_M3;T_GEo_M3;T_GEo_GEorigin;T_GE_M3;T_GE_all;Q_GE_ankle;T_frame;T_ankle_flex;T_ankle_ex;T_CFL_M1;T_CFL_M2;];
 
 %重力項のトルク計算
 %フレーム＋股関節

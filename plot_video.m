@@ -1,7 +1,7 @@
 % clear;
  close all;
 % clearvars
-load('/Users/goto/Documents/Matlab_goto/crocodile_sim_PID-main/exp20251028_CFL350_Ci44_CFLT100_GEo35_GE185.mat');
+load('/Users/goto/Documents/Matlab_goto/crocodile_sim_PID-main/results/plotall3/exp20251028_CFL350_Ci44_CFLT100_GEo35_GE185_2.mat');
 % load('results/20240712_MuscleLengthTest_PID/exp20240712_MuscleLengthTest_PID_1125_P50000_I50_D550_CFL350_Ci44_CFLT107_GEo43_GE200.mat');
 % load('results/20240726_init_condition_test_per2mm/exp20240726_init_condition_test_per2mm_223_Hip20_Knee44_CFL350_Ci44_CFLT107_GEo37_GE188.mat');
 % load('results/20240822_for_nolta_paper_rev/knee83/exp20240822_for_nolta_paper_noGE_knee83_CFL350_Ci44_CFLT100_GEo35_GE185.mat')
@@ -17,7 +17,7 @@ new_filename = fullfile([save_path name '.mp4']);
 % プロットの設定．
 graph_save = true;
 graph_view = true;
-movie_save = true;
+movie_save = false;
 
 time_lim = max(t(:,1));
 
@@ -27,9 +27,9 @@ noGE = false;
 if contains(name,'noCFLT')
     noCFLT = true;
 end
-if contains(name,'noGE')
-    noGE = true;
-end
+% if contains(name,'noGE')
+%     noGE = true;
+% end
 
 phi = linspace(0,2*pi,100);
 r = l_link_list(7);
@@ -61,8 +61,8 @@ end
 
 % 筋腱の張力，トルク，運動量，角運動量の時系列データを計算
 for i = 1:size(q,1)
-    k_wire = data_k_c_wire(i,2:5); %k_Ci, k_CFLT, k_GEo, k_GE
-    c_wire = data_k_c_wire(i,6:10); %c_Ci, c_CFLT, c_GEo, c_GE
+    k_wire = data_k_c_wire(i,2:8); %k_Ci, k_CFLT, k_GEo, k_GE
+    c_wire = data_k_c_wire(i,9:16); %c_Ci, c_CFLT, c_GEo, c_GE
     % L_wire(1) = data_acce_GRF(i,18);
 
     general_q = q(i,1:10).';
