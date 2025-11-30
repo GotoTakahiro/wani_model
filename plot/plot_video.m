@@ -1,7 +1,9 @@
 % clear;
  close all;
 % clearvars
-load('/Users/goto/Documents/Matlab_goto/crocodile_sim_PID-main/results/plotall3/exp20251028_CFL350_Ci44_CFLT100_GEo35_GE185_2.mat');
+
+addpath('/Users/goto/Documents/Matlab/crocodile_sim_PID-main');
+load('/Users/goto/Documents/MATLAB/crocodile_sim_PID-main/plot/results/m4/exp20251028_CFL350_Ci44_CFLT100_GEo35_GE185.mat');
 % load('results/20240712_MuscleLengthTest_PID/exp20240712_MuscleLengthTest_PID_1125_P50000_I50_D550_CFL350_Ci44_CFLT107_GEo43_GE200.mat');
 % load('results/20240726_init_condition_test_per2mm/exp20240726_init_condition_test_per2mm_223_Hip20_Knee44_CFL350_Ci44_CFLT107_GEo37_GE188.mat');
 % load('results/20240822_for_nolta_paper_rev/knee83/exp20240822_for_nolta_paper_noGE_knee83_CFL350_Ci44_CFLT100_GEo35_GE185.mat')
@@ -17,7 +19,7 @@ new_filename = fullfile([save_path name '.mp4']);
 % プロットの設定．
 graph_save = true;
 graph_view = true;
-movie_save = false;
+movie_save = true;
 
 time_lim = max(t(:,1));
 
@@ -27,9 +29,9 @@ noGE = false;
 if contains(name,'noCFLT')
     noCFLT = true;
 end
-% if contains(name,'noGE')
-%     noGE = true;
-% end
+if contains(name,'noGE')
+    noGE = true;
+end
 
 phi = linspace(0,2*pi,100);
 r = l_link_list(7);
@@ -542,6 +544,10 @@ if movie_save == true
         if noGE == false
             plot(ax, [coordinates_x(i,7) coordinates_x(i,8)], [coordinates_y(i,7) coordinates_y(i,8)], '-r', 'LineWidth', 2, 'Color', GE_Color);
         end
+
+        % ---- 重心描写 ----
+        plot(ax, COM(i,1), COM(i,2), "o",'MarkerSize', 10,'MarkerFaceColor', 'k','MarkerEdgeColor', 'k');
+
 
         % ---- 縦横比・表示範囲を固定（フレームごと確認）----
         xlim(ax, [x_lim_neg x_lim_pos]);

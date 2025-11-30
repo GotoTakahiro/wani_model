@@ -64,26 +64,29 @@ function [k,c] = calc_spring_const(general_q,l_link_list,l_muscle_list,limit_lis
 
     % 足関節の背屈の制限
     if general_q(8) > limit_list(1)
-        k(5) = k_frame;%default_wire_k;
+        k(5) = k_frame;    %default_wire_k;
+        %c(5) = c_frame/50;
     else
         k(5) = 0;
-        c(5) = 0;
+        %c(5) = 0;
     end
     %足関節の底屈の制限
     if general_q(8) < limit_list(2)
-        k(6) = k_frame;%default_wire_k;
+        k(6) = k_frame;    %default_wire_k;
+        %c(6) = c_frame/50;
     else
         k(6) = 0;
-        c(6) = 0;
+        %c(6) = 0;
     end
 
     % 足関節の粘性は常に入れる
-    c(5) = c_frame/50; %ankle
-    c(6) = c_frame/50; %ankle
+    %底屈の粘性は，底屈の条件を満たすときだけ生じるように変更
+    c(5) = c_frame/50;      %ankle
+    c(6) = c_frame/50;      %ankle
 
     % フレームの角度が常に一定（水平）に保つための係数，角度theta1に依存
     k(7) = k_frame;    %frame
     c(7) = c_frame/20; %frame
     %CFLの粘性係数c_CFLは0 CFLの粘弾性項は粘弾性エネルギーからではなく，l_CFLを一定に保つための力の方に含まれている
-    c(8) = c_frame*0; %c_CFL
+    c(8) = 0; %c_CFL
 end

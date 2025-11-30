@@ -80,7 +80,7 @@ GE_Color = '#77AC30';
 %theta1
 torque_all=(data_T_all(:,1:10)+data_T_all(:,11:20)+data_T_all(:,21:30)+data_T_all(:,31:40)+data_T_all(:,41:50)+data_T_all(:,51:60)+data_T_all(:,71:80));
 torque_all=torque_all+data_T_gravity_all(:,1:10)+data_T_gravity_all(:,11:20)+data_T_gravity_all(:,21:30)+data_T_gravity_all(:,31:40)+data_T_gravity_all(:,41:50)+data_T_gravity_all(:,51:60);
-%torque_all(:,5)=torque_all(:,5)+data_T_all(:,91);%frameによる拘束トルク
+torque_all(:,5)=torque_all(:,5)+data_T_all(:,91);%frameによる拘束トルク
 torque_all(:,8)=torque_all(:,8)+data_T_all(:,93)+data_T_all(:,92);%ankleの拘束トルク
 torque_all=torque_all+data_Q_heel(:,1:10)+data_Q_toe(:,1:10)+data_Q_hip_pull(:,1:10)+data_Q_hip_up(:,1:10);
 

@@ -3,8 +3,8 @@
  clear;
  close all;
 % clearvars
-load('/Users/goto/Documents/Matlab_goto/crocodile_sim_PID-main/results/plotall3/exp20251028_CFL350_Ci44_CFLT100_GEo35_GE185_2.mat');
-% load('results/20240712_MuscleLengthTest_PID/exp20240712_MuscleLengthTest_PID_1125_P50000_I50_D550_CFL350_Ci44_CFLT107_GEo43_GE200.mat');
+addpath('/Users/goto/Documents/Matlab/crocodile_sim_PID-main');
+load('/Users/goto/Documents/MATLAB/crocodile_sim_PID-main/plot/results/m5/exp20251028_CFL350_Ci44_CFLT100_GEo35_GE185.mat');% load('results/20240712_MuscleLengthTest_PID/exp20240712_MuscleLengthTest_PID_1125_P50000_I50_D550_CFL350_Ci44_CFLT107_GEo43_GE200.mat');
 % load('results/20240726_init_condition_test_per2mm/exp20240726_init_condition_test_per2mm_223_Hip20_Knee44_CFL350_Ci44_CFLT107_GEo37_GE188.mat');
 % load('results/20240822_for_nolta_paper_rev/knee83/exp20240822_for_nolta_paper_noGE_knee83_CFL350_Ci44_CFLT100_GEo35_GE185.mat')
 % load('results/20240718_HighWalk_init/exp20240718_HighWalk_init_PID_885_P50000_I50_D550_CFL350_Ci44_CFLT98_GEo35_GE197.mat')
@@ -128,8 +128,8 @@ F_hip_hiptoe= func_F_hip(q,l_link_list,data_Q_toe(:,1:10));
 %股関節の支持力を除いた総和を計算
 F_hip_muscletendon=F_hip_Ci_4th+F_hip_Ci_M2+F_hip_CFLT_M2+F_hip_CFLT_M3+F_hip_GEo_M3+F_hip_GEo_GEorigin+F_hip_GE+F_hip_frame_fix+F_hip_ex+F_hip_CFL_M1+F_hip_CFL_M2;
 F_hip_gravity=F_hip_M2+F_hip_M3+F_hip_frame+F_hip_fem+F_hip_tib+F_hip_met;
-F_hip_externalforce=F_hip_hipheel+F_hip_hiptoe; %F_hip_hippull+
-F_hip_all=F_hip_muscletendon+F_hip_gravity+F_hip_externalforce+F_hip_hipup;
+F_hip_externalforce=F_hip_hipheel+F_hip_hiptoe;%+F_hip_hippull;
+F_hip_all=F_hip_muscletendon+F_hip_gravity+F_hip_externalforce;%+F_hip_hipup;
 
 %一般化力からCOMの質点に働く力を逆算するための関数
 %ワイヤー項
@@ -383,5 +383,18 @@ if graph_view == true
         exportgraphics(gca, [save_path name '_accelall[2].pdf'], 'ContentType', 'vector');
     end
     
+    %Figure12：リンク角の加速度をそれぞれ表示2
+    figure(12)
+    plot(t(:,1),data_T_all(:,93),'LineWidth',2);
+
+    xlim([0 time_lim]);
+    %ylim([-5 5]);
+    % legend('Heel-$F_x$','Heel-$F_y$','Toe-$F_x$','Toe-$F_y$', 'Interpreter', 'latex', 'FontSize',20,'Location','best');
+    legend('$\theta_{ankle,ex}$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
+    xlabel('Time [s]');
+    ylabel('Torque [Nm]');
+    if graph_save == true
+        exportgraphics(gca, [save_path name '_torque.pdf'], 'ContentType', 'vector');
+    end
 
 end

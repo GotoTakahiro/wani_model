@@ -1,4 +1,5 @@
 %各リンクの並進方向の加速度を計算するための式
+%重心の並進方向の加速度を計算するための式
 function [accel_CoM] = func_accel(phi,dphi,ddphi,m_list,l_link_list)
 
     
@@ -11,10 +12,12 @@ function [accel_CoM] = func_accel(phi,dphi,ddphi,m_list,l_link_list)
 
     M_hip=m_list(4);
     M_frame=m_list(5);
-    %m_list(6) = M_fem;
-    %m_list(7) = M_tib;
+    M_fem=m_list(6);
+    M_tib=m_list(7);
     M_met_pulley=m_list(8);
     M_met_rod=m_list(9);
+    %総質量
+    M_all=m_list(4)+m_list(5)+m_list(6)+m_list(7)+m_list(8)+m_list(9);
 
 
     %metatarsalの端部から重心までの長さ
@@ -25,17 +28,17 @@ function [accel_CoM] = func_accel(phi,dphi,ddphi,m_list,l_link_list)
     L_tibia_CoM = L_tibia/2;
     %femurの重心までの長さ
     L_femur_CoM = L_femur/2;
-    accel_CoM=zeros(size(phi(:,1),1),14);
+    accel_CoM=zeros(size(phi(:,1),1),16);
 
     for in=1:size(phi(:,1),1)
         %ankleからmetatarsalの重心までのベクトル
         r_met_CoM=[L_met_CoM*sin(phi(in,4)) -L_met_CoM*cos(phi(in,4))];
-        %ankleの重心の並進加速度
+        %metatarsalの重心の並進加速度
         accel_met_CoM=[-ddphi(in,4)*r_met_CoM(1,2) ddphi(in,4)*r_met_CoM(1,1)]+[-dphi(in,4)^2*r_met_CoM(1,1) -dphi(in,4)^2*r_met_CoM(1,2)];
         
         %ankleから足先までのベクトル
         r_foot_CoM=[L_met*sin(phi(in,4)) -L_met*cos(phi(in,4))];
-        %ankleの重心の並進加速度
+        %足先の並進加速度
         accel_foot_CoM=[-ddphi(in,4)*r_foot_CoM(1,2) ddphi(in,4)*r_foot_CoM(1,1)]+[-dphi(in,4)^2*r_foot_CoM(1,1) -dphi(in,4)^2*r_foot_CoM(1,2)];
     
         %ankleからtibiaの重心までのベクトル
@@ -45,7 +48,7 @@ function [accel_CoM] = func_accel(phi,dphi,ddphi,m_list,l_link_list)
         
         %kneeの位置までのベクトル
         r_knee_CoM=[L_tibia*sin(-phi(in,3)) L_tibia*cos(phi(in,3))];
-        %kneeの重心の並進加速度
+        %kneeの並進加速度
         accel_knee_CoM=[-ddphi(in,3)*r_knee_CoM(1,2) ddphi(in,3)*r_knee_CoM(1,1)]+[-dphi(in,3)^2*r_knee_CoM(1,1) -dphi(in,3)^2*r_knee_CoM(1,2)];
         
         %femurの位置までのベクトル
@@ -55,7 +58,7 @@ function [accel_CoM] = func_accel(phi,dphi,ddphi,m_list,l_link_list)
         
         %hipの位置までのベクトル
         r_hip_CoM=[L_femur*sin(-phi(in,2)) L_femur*cos(phi(in,2))];
-        %hipの重心の並進加速度
+        %hipの並進加速度
         accel_hip_CoM=accel_knee_CoM+[-ddphi(in,2)*r_hip_CoM(1,2) ddphi(in,2)*r_hip_CoM(1,1)]+[-dphi(in,2)^2*r_hip_CoM(1,1) -dphi(in,2)^2*r_hip_CoM(1,2)];
     
         %frameの重心位置までのベクトル
@@ -65,8 +68,11 @@ function [accel_CoM] = func_accel(phi,dphi,ddphi,m_list,l_link_list)
     
         %frameの先端位置までのベクトル
         r_tail_CoM=[L_frame*sin(-phi(in,1)) L_frame*cos(phi(in,1))];
-        %frameの重心の並進加速度
+        %frame先端の並進加速度
         accel_tail_CoM=accel_hip_CoM+[-ddphi(in,1)*r_tail_CoM(1,2) ddphi(in,1)*r_tail_CoM(1,1)]+[-dphi(in,1)^2*r_tail_CoM(1,1) -dphi(in,1)^2*r_tail_CoM(1,2)];
+
+        %重心の並進加速度の計算
+        accel_CoM_COM=((M_met_pulley+M_met_rod)*accel_met_CoM+M_tib*accel_tibia_CoM+M_fem*accel_femur_CoM+(M_hip+M_frame)*accel_frame_CoM)/M_all;
     
     
         %計算結果の格納
@@ -86,6 +92,8 @@ function [accel_CoM] = func_accel(phi,dphi,ddphi,m_list,l_link_list)
         accel_CoM(in,12)=accel_tail_CoM(1,2);
         accel_CoM(in,13)=accel_foot_CoM(1,1);
         accel_CoM(in,14)=accel_foot_CoM(1,2);
+        accel_CoM(in,15)=accel_CoM_COM(1,1);
+        accel_CoM(in,16)=accel_CoM_COM(1,2);
     end
     
 end

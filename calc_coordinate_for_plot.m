@@ -1,4 +1,7 @@
 function [coordinates_x, coordinates_y, angle_wire_pulley] = calc_coordinate_for_plot(q,r,L_link)
+    coordinates_x=zeros(size(q,1),12);
+    coordinates_y=zeros(size(q,1),12);
+    angle_wire_pulley=zeros(size(q,1),1);
 
     for i = 1:size(q,1)
         general_q = q(i,1:10).';
@@ -36,6 +39,11 @@ function [coordinates_x, coordinates_y, angle_wire_pulley] = calc_coordinate_for
         %GE_origin（GEoの付着位置）の座標  
         coordinates_x(i,11) = coordinates_x(i,2) + L_link(5)*sin(q(i,5)+q(i,6)); 
         coordinates_y(i,11) = coordinates_y(i,2) - L_link(5)*cos(q(i,5)+q(i,6));
+        %toeからpulleyへ接線を引いたときの接点
+        temp2 = calc_coordinate_toe_to_pulley(L_link,general_q);
+        coordinates_x(i,12) = temp2(1,1); 
+        coordinates_y(i,12) = temp2(2,1);
+
         %プーリーにかかっているワイヤの角度
         angle_wire_pulley(i) = calc_angle_wire_pulley(L_link,general_q);
     end
