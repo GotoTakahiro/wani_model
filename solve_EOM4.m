@@ -103,7 +103,7 @@ function solve_EOM = solve_EOM4(tmax,tspace,tspan,initial_condition,x_fixed,y_fi
 
             % 股関節を後ろに引く力を設定
             if x_hip > x_fixed(1)
-                pullForce_x = -6*(1-exp(-40*(abs(x_hip)))); %x方向に引っ張る力．
+                pullForce_x = -10*(1-exp(-40*(abs(x_hip)))); %x方向に引っ張る力．
                 pullForce_y = 0;
             else
                 pullForce_x = -k_ground*(x_hip-x_fixed(1)) - c_ground*dx_hip_vec(1); %ストッパー．股関節が初期値位置よりも後ろに動かないようにする．

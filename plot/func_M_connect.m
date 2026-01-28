@@ -87,7 +87,7 @@ function [M_connect] = func_M_connect(q,r,l_link_list,m_list,accel_CoM,F_dist,GR
         %時計回りのモーメント
         M_connect(i,36)=-(F_dist(i,9)*(coordinates_y(i,8)-coordinates_y(i,5))+F_dist(i,10)*(coordinates_x(i,8)-coordinates_x(i,5))+data_T_all(i,93));%+data_F_all(i,5)*r;%+M_connect(i,1));
         %反時計回りのモーメント
-        M_connect(i,37)=F_met*(COM_x(i,4)-coordinates_x(i,5))+F_connect(i,1)*(coordinates_y(i,4)-coordinates_y(i,5))+F_connect(i,2)*(coordinates_x(i,4)-coordinates_x(i,5));%
+        M_connect(i,37)=F_connect(i,1)*(coordinates_y(i,4)-coordinates_y(i,5))+F_connect(i,2)*(coordinates_x(i,4)-coordinates_x(i,5))-F_met*(COM_x(i,4)-coordinates_x(i,5));
         %時計回りのモーメント
         M_connect(i,38)=-(F_dist(i,9)*(coordinates_y(i,8)-coordinates_y(i,5))+F_dist(i,10)*(coordinates_x(i,8)-coordinates_x(i,5)))+GRF(i,2)*(coordinates_x(i,2)-coordinates_x(i,5));%+GRF(i,4)*(coordinates_x(i,4)-coordinates_x(i,5)));
         %反時計回りのモーメント

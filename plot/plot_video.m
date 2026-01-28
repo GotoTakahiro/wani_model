@@ -2,8 +2,8 @@
  close all;
 % clearvars
 
-addpath('/Users/goto/Documents/Matlab/crocodile_sim_PID-main');
-load('/Users/goto/Documents/MATLAB/crocodile_sim_PID-main/plot/results/m4/exp20251028_CFL350_Ci44_CFLT100_GEo35_GE185.mat');
+addpath('/Users/goto_1_2/Documents/MATLAB/crocodile_sim');
+load('/Users/goto_1_2/Documents/MATLAB/crocodile_sim/exp20260106_CFL350_Ci44_CFLT100_GEo35_GE170.mat');
 % load('results/20240712_MuscleLengthTest_PID/exp20240712_MuscleLengthTest_PID_1125_P50000_I50_D550_CFL350_Ci44_CFLT107_GEo43_GE200.mat');
 % load('results/20240726_init_condition_test_per2mm/exp20240726_init_condition_test_per2mm_223_Hip20_Knee44_CFL350_Ci44_CFLT107_GEo37_GE188.mat');
 % load('results/20240822_for_nolta_paper_rev/knee83/exp20240822_for_nolta_paper_noGE_knee83_CFL350_Ci44_CFLT100_GEo35_GE185.mat')
