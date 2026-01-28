@@ -105,7 +105,8 @@ function solve_EOM = solve_EOM2(tmax,tspace,tspan,initial_condition,x_fixed,y_fi
             end
 
             % 筋腱の起始停止点からたるみを考慮．たるんでいればばね定数と粘性係数が０になる．
-            [k_list, c_list] = calc_spring_const(q(1:10),l_link_list,l_muscle_list,limit_list,default_wire_k,default_wire_c,k_frame,c_frame);
+            %calc_spring_const2はバネ定数と粘性係数の条件を変えたいときに利用
+            [k_list, c_list] = calc_spring_const2(q(1:10),l_link_list,l_muscle_list,limit_list,default_wire_k,default_wire_c,k_frame,c_frame);
             % k_list(2) = 0;
             % c_list(2) = 0;
 

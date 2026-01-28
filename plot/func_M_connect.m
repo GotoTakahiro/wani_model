@@ -45,7 +45,7 @@ function [M_connect] = func_M_connect(q,r,l_link_list,m_list,accel_CoM,F_dist,GR
 
         %膝関節周りのモーメントの計算
         M_connect(i,2)=M_connect(i,1)+J_list(3)*ddphi(i,3)+m_list(7)*(accel_CoM(i,3)*(COM_y(i,3)-coordinates_y(i,3))+accel_CoM(i,4)*(COM_x(i,3)-coordinates_x(i,3)))...
-                        +F_tib*(COM_x(i,3)-coordinates_x(i,3))-F_connect(i,1)*(coordinates_y(i,4)-coordinates_y(i,3))+F_connect(i,2)*(coordinates_x(i,4)-coordinates_x(i,3));
+                        +F_tib*(COM_x(i,3)-coordinates_x(i,3))-F_connect(i,1)*(coordinates_y(i,4)-coordinates_y(i,3))+F_connect(i,2)*(coordinates_x(i,4)-coordinates_x(i,3))+data_T_all(i,93); %M_connect(i,1)+
         M_connect(i,11)=F_connect(i,1)*(coordinates_y(i,4)-coordinates_y(i,3)); %関節力の水平方向成分
         M_connect(i,12)=-F_connect(i,2)*(coordinates_x(i,4)-coordinates_x(i,3)); %関節力の垂直方向成分
         M_connect(i,13)=-F_tib*(COM_x(i,3)-coordinates_x(i,3));%重力方向成分
@@ -58,7 +58,7 @@ function [M_connect] = func_M_connect(q,r,l_link_list,m_list,accel_CoM,F_dist,GR
         M_connect(i,3)=M_connect(i,2)+J_list(2)*ddphi(i,2)+m_list(6)*(accel_CoM(i,7)*(COM_y(i,2)-coordinates_y(i,2))+accel_CoM(i,8)*(COM_x(i,2)-coordinates_x(i,2)))...
                         +F_fem*(COM_x(i,2)-coordinates_x(i,2))-F_connect(i,3)*(coordinates_y(i,3)-coordinates_y(i,2))+F_connect(i,4)*(coordinates_x(i,3)-coordinates_x(i,2))...
                             +F_dist(i,1)*(coordinates_y(i,10)-coordinates_y(i,2))-F_dist(i,2)*(coordinates_x(i,10)-coordinates_x(i,2))... %F_Ciによるトルク
-                            +F_dist(i,3)*(coordinates_y(i,11)-coordinates_y(i,2))-F_dist(i,4)*(coordinates_x(i,11)-coordinates_x(i,2)); %F_GEによるトルク
+                            +F_dist(i,3)*(coordinates_y(i,11)-coordinates_y(i,2))-F_dist(i,4)*(coordinates_x(i,11)-coordinates_x(i,2)); %F_GEによるトルク M_connect(i,2)+
         M_connect(i,16)=F_connect(i,3)*(coordinates_y(i,3)-coordinates_y(i,2)); %関節力の水平方向成分
         M_connect(i,17)=-F_connect(i,4)*(coordinates_x(i,3)-coordinates_x(i,2)); %関節力の垂直方向成分
         M_connect(i,18)=-F_fem*(COM_x(i,2)-coordinates_x(i,2));%重力方向成分
@@ -74,7 +74,7 @@ function [M_connect] = func_M_connect(q,r,l_link_list,m_list,accel_CoM,F_dist,GR
         %原点周りのモーメントの計算
         M_connect(i,4)=M_connect(i,3)+J_list(1)*ddphi(i,1)+(m_list(4)+m_list(5))*(accel_CoM(i,11)*(COM_y(i,1)-coordinates_y(i,1))+accel_CoM(i,12)*(COM_x(i,1)-coordinates_x(i,1)))...
                         +F_frame*(COM_x(i,1)-coordinates_x(i,1))-F_connect(i,5)*(coordinates_y(i,2)-coordinates_y(i,1))+F_connect(i,6)*(coordinates_x(i,2)-coordinates_x(i,1))...
-                            -data_T_all(i,91); %theta1を一定に保つ拘束トルク
+                            -data_T_all(i,91); %theta1を一定に保つ拘束トルク M_connect(i,3)+
         M_connect(i,25)=F_connect(i,5)*(coordinates_y(i,2)-coordinates_y(i,1)); %関節力の水平方向成分
         M_connect(i,26)=-F_connect(i,6)*(coordinates_x(i,2)-coordinates_x(i,1)); %関節力の垂直方向成分
         M_connect(i,27)=-F_frame*(COM_x(i,1)-coordinates_x(i,1));%重力方向成分

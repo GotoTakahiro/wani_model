@@ -3,7 +3,12 @@
 % clear;
  close all;
 % clearvars
-load('/Users/goto/Documents/Matlab_goto/crocodile_sim_PID-main/exp20251028noGE_CFL350_Ci44_CFLT100_GEo35_GE185.mat');
+addpath('/Users/goto/Documents/Matlab/crocodile_sim');
+
+load('/Users/goto/Documents/MATLAB/crocodile_sim/plot/results/plotall3/exp20251028_CFL350_Ci44_CFLT100_GEo35_GE185_2.mat');
+
+
+
 % load('results/20240712_MuscleLengthTest_PID/exp20240712_MuscleLengthTest_PID_1125_P50000_I50_D550_CFL350_Ci44_CFLT107_GEo43_GE200.mat');
 % load('results/20240726_init_condition_test_per2mm/exp20240726_init_condition_test_per2mm_223_Hip20_Knee44_CFL350_Ci44_CFLT107_GEo37_GE188.mat');
 % load('results/20240822_for_nolta_paper_rev/knee83/exp20240822_for_nolta_paper_noGE_knee83_CFL350_Ci44_CFLT100_GEo35_GE185.mat')
@@ -152,8 +157,8 @@ F_COM_hiptoe= func_F_COM(q,m_list,l_link_list,data_Q_toe(:,1:10));
 %股関節の支持力を除いた総和を計算
 F_COM_muscletendon=F_COM_Ci_4th+F_COM_Ci_M2+F_COM_CFLT_M2+F_COM_CFLT_M3+F_COM_GEo_M3+F_COM_GEo_GEorigin+F_COM_GE++F_COM_frame_fix+F_COM_ex+F_COM_CFL_M1+F_COM_CFL_M2;
 F_COM_gravity=F_COM_M2+F_COM_M3+F_COM_frame+F_hip_fem+F_COM_tib+F_COM_met;
-F_COM_externalforce=F_COM_hippull+F_COM_hipheel+F_COM_hiptoe;
-F_COM_all=F_COM_muscletendon+F_COM_gravity+F_COM_externalforce+F_COM_hipup;
+F_COM_externalforce=F_COM_hipheel+F_COM_hiptoe;
+F_COM_all=F_COM_muscletendon+F_COM_externalforce+F_COM_gravity; %+F_COM_hipup F_COM_hippull+
 
 %一般化力から股関節にかかる力を計算
 
@@ -236,7 +241,7 @@ if graph_view == true
     
     hold off
     xlim([0 time_lim]);
-    %ylim([-6 6]);
+    ylim([-50 50]);
     legend('$up$','$pull$','$heel$','$toe$','$frame_{fix}$','$ex$','$all$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
     xlabel('Time [s]');
     ylabel('Force [N]');

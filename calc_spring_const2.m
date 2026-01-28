@@ -1,4 +1,4 @@
-function [k,c] = calc_spring_const(general_q,l_link_list,l_muscle_list,limit_list,default_wire_k,default_wire_c,k_frame,c_frame)
+function [k,c] = calc_spring_const2(general_q,l_link_list,l_muscle_list,limit_list,default_wire_k,default_wire_c,k_frame,c_frame)
     global L_GE_present
     r = l_link_list(7);
     k = zeros(7,1);
@@ -73,15 +73,16 @@ function [k,c] = calc_spring_const(general_q,l_link_list,l_muscle_list,limit_lis
     %足関節の底屈の制限
     if general_q(8) < limit_list(2)
         k(6) = k_frame;    %default_wire_k;
-        %c(6) = c_frame/50;
+        c(6) = c_frame/50;
     else
         k(6) = 0;
-        %c(6) = 0;
+        c(6) = 0;
     end
 
     % 足関節の粘性は常に入れる
+    %底屈の粘性は，底屈の条件を満たすときだけ生じるように変更
     c(5) = c_frame/50;      %ankle
-    c(6) = c_frame/50;      %ankle
+    %c(6) = c_frame/50;      %ankle
 
     % フレームの角度が常に一定（水平）に保つための係数，角度theta1に依存
     k(7) = k_frame;    %frame
