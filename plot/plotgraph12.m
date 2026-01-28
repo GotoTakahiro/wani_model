@@ -1,14 +1,14 @@
 %data_T_allの形式(:,113)
 %絶対角を座標としたときの角度，角速度，角加速度，並進加速度を導出
 %筋腱張力によってx,y方向にかかる力を導出
-%その結果から関節間の接触力，モーメントを計算
+%その結果から関節間の関節間力，モーメントを計算
 % clear;
  close all;
 % clearvars
 
-addpath('/Users/goto/Documents/Matlab/crocodile_sim_PID-main');
+addpath('/Users/goto/Documents/Matlab/crocodile_sim');
 
-load('/Users/goto/Documents/MATLAB/crocodile_sim_PID-main/plot/results/m4/expm4_CFL350_Ci44_CFLT100_GEo35_GE185.mat');
+load('/Users/goto/Documents/MATLAB/crocodile_sim/plot/results/noGE/exp20251028noGE_CFL350_Ci44_CFLT100_GEo35_GE185.mat');
 % load('results/20240712_MuscleLengthTest_PID/exp20240712_MuscleLengthTest_PID_1125_P50000_I50_D550_CFL350_Ci44_CFLT107_GEo43_GE200.mat');
 % load('results/20240726_init_condition_test_per2mm/exp20240726_init_condition_test_per2mm_223_Hip20_Knee44_CFL350_Ci44_CFLT107_GEo37_GE188.mat');
 % load('results/20240822_for_nolta_paper_rev/knee83/exp20240822_for_nolta_paper_noGE_knee83_CFL350_Ci44_CFLT100_GEo35_GE185.mat')
@@ -127,15 +127,18 @@ if graph_view == true
     hold on
     plot(t(:,1),F_connect(:,3),'LineWidth',2);
     plot(t(:,1),F_connect(:,5),'LineWidth',2);
-    plot(t(:,1),F_connect(:,7),'LineWidth',2);
+    %plot(t(:,1),F_connect(:,7),'LineWidth',2);
     %plot(t(:,1),F_dist(:,1)+F_dist(:,3)+F_dist(:,5)+F_dist(:,7),'LineWidth',2); 
     %plot(t(:,1),GRF_x,'LineWidth',2);
     hold off
+    ax = gca; % 現在の軸を取得
+    ax.FontSize = 24;         % 軸の数値（目盛）のサイズ
+    ax.FontName = 'Times New Roman'; % フォントの種類を統一（任意）
     xlim([0 time_lim]);
-    %ylim([-15 15]);
-    legend('$ankle$','$knee$','$hip$','$frame$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
-    xlabel('Time [s]');
-    ylabel('Force [N]');
+    ylim([-40 140]);
+    legend('ankle','knee','hip','M0','Interpreter', 'latex', 'FontSize',20,'Location','northeast');
+    xlabel('Time [s]', 'FontSize', 28);
+    ylabel('Force [N]', 'FontSize', 28);
     if graph_save == true
         exportgraphics(gca, [save_path name '_connectfx[1].pdf'], 'ContentType', 'vector');
     end
@@ -146,16 +149,20 @@ if graph_view == true
     hold on
     plot(t(:,1),F_connect(:,4),'LineWidth',2);
     plot(t(:,1),F_connect(:,6),'LineWidth',2);
-    plot(t(:,1),F_connect(:,8),'LineWidth',2);
+    %plot(t(:,1),F_connect(:,8),'LineWidth',2);
     %plot(t(:,1),F_dist(:,2)+F_dist(:,4)+F_dist(:,6)+F_dist(:,8),'LineWidth',2);    
     %plot(t(:,1),F_gravity(:,1),'LineWidth',2);
     %plot(t(:,1),GRF_y,'LineWidth',2);
     hold off
+    ax = gca; % 現在の軸を取得
+    ax.FontSize = 24;         % 軸の数値（目盛）のサイズ
+    ax.FontName = 'Times New Roman'; % フォントの種類を統一（任意）
+
     xlim([0 time_lim]);
     ylim([-120 40]);
-    legend('$ankle$','$knee$','$hip$','$frame$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
-    xlabel('Time [s]');
-    ylabel('Force [N]');
+    legend('ankle','knee','hip','M0','Interpreter', 'latex', 'FontSize',20,'Location','northeast');
+    xlabel('Time [s]', 'FontSize', 28);
+    ylabel('Force [N]', 'FontSize', 28);
     if graph_save == true
         exportgraphics(gca, [save_path name '_connectfy[1].pdf'], 'ContentType', 'vector');
     end
@@ -166,16 +173,20 @@ if graph_view == true
     hold on
     plot(t(:,1),M_connect(:,2),'LineWidth',2);
     plot(t(:,1),M_connect(:,3),'LineWidth',2);
-    plot(t(:,1),M_connect(:,4),'LineWidth',2);
+    %plot(t(:,1),M_connect(:,4),'LineWidth',2);
     %plot(t(:,1),F_dist(:,2)+F_dist(:,4)+F_dist(:,6)+F_dist(:,8),'LineWidth',2);    
     %plot(t(:,1),F_gravity(:,1),'LineWidth',2);
     %plot(t(:,1),GRF_y,'LineWidth',2);
     hold off
+    ax = gca; % 現在の軸を取得
+    ax.FontSize = 24;         % 軸の数値（目盛）のサイズ
+    ax.FontName = 'Times New Roman'; % フォントの種類を統一（任意）
+
     xlim([0 time_lim]);
-    ylim([-5 5]);
-    legend('$ankle$','$knee$','$hip$','$frame$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
-    xlabel('Time [s]');
-    ylabel('Torque [Nm]');
+    ylim([-1 1]);
+    legend('ankle','knee','hip','M0','Interpreter', 'latex', 'FontSize',20,'Location','northeast');
+    xlabel('Time [s]', 'FontSize', 28);
+    ylabel('Torque [Nm]', 'FontSize', 28);
     if graph_save == true
         exportgraphics(gca, [save_path name '_connectmom[1].pdf'], 'ContentType', 'vector');
     end
@@ -200,161 +211,161 @@ if graph_view == true
     if graph_save == true
         exportgraphics(gca, [save_path name '_momankle[1].pdf'], 'ContentType', 'vector');
     end
-    %Figure5：knee周りのモーメントを表示
-    figure(5)
-    plot(t(:,1),M_connect(:,11),'LineWidth',2);
-    hold on
-    plot(t(:,1),M_connect(:,12),'LineWidth',2);
-    plot(t(:,1),M_connect(:,13),'LineWidth',2);
-    plot(t(:,1),M_connect(:,14),'LineWidth',2);
-    plot(t(:,1),M_connect(:,15),'LineWidth',2);
-    %plot(t(:,1),M_connect(:,11)+M_connect(:,12)+M_connect(:,13)+M_connect(:,14)+M_connect(:,15),'LineWidth',2);
-    %plot(t(:,1),GRF_y,'LineWidth',2);
-    hold off
-    xlim([0 time_lim]);
-    %ylim([-120 40]);
-    legend('$joint_x$','$joint_y$','$grav$','$int_x$','$int_y$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
-    xlabel('Time [s]');
-    ylabel('Torque [Nm]');
-    if graph_save == true
-        exportgraphics(gca, [save_path name '_momknee[1].pdf'], 'ContentType', 'vector');
-    end
-    %Figure6：hip周りのモーメントを表示
-    figure(6)
-    plot(t(:,1),M_connect(:,16),'LineWidth',2);
-    hold on
-    plot(t(:,1),M_connect(:,17),'LineWidth',2);
-    plot(t(:,1),M_connect(:,18),'LineWidth',2);
-    plot(t(:,1),M_connect(:,19),'LineWidth',2);
-    plot(t(:,1),M_connect(:,20),'LineWidth',2);
-    %plot(t(:,1),GRF_y,'LineWidth',2);
-    hold off
-    xlim([0 time_lim]);
-    %ylim([-120 40]);
-    legend('$joint_x$','$joint_y$','$grav$','$int_x$','$int_y$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
-    xlabel('Time [s]');
-    ylabel('Torque [Nm]');
-    if graph_save == true
-        exportgraphics(gca, [save_path name '_momhip[1].pdf'], 'ContentType', 'vector');
-    end
-
-    %Figure7：hip周りのモーメントを表示2
-    figure(7)
-    plot(t(:,1),M_connect(:,21),'LineWidth',2);
-    hold on
-    plot(t(:,1),M_connect(:,22),'LineWidth',2);
-    plot(t(:,1),M_connect(:,23),'LineWidth',2);
-    plot(t(:,1),M_connect(:,24),'LineWidth',2);
-    %plot(t(:,1),GRF_y,'LineWidth',2);
-    hold off
-    xlim([0 time_lim]);
-    %ylim([-120 40]);
-    legend('$FCi_x$','$FCi_y$','$FGEo_x$','$FGEo_y$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
-    xlabel('Time [s]');
-    ylabel('Torque [Nm]');
-    if graph_save == true
-        exportgraphics(gca, [save_path name '_momhip[2].pdf'], 'ContentType', 'vector');
-    end
-    %Figure8：body周りのモーメントを表示
-    figure(8)
-    plot(t(:,1),M_connect(:,25),'LineWidth',2);
-    
-    hold on
-    plot(t(:,1),M_connect(:,26),'LineWidth',2);
-    plot(t(:,1),M_connect(:,27),'LineWidth',2);
-    plot(t(:,1),M_connect(:,28),'LineWidth',2);
-    plot(t(:,1),M_connect(:,29),'LineWidth',2);
-    plot(t(:,1),data_T_all(:,91),'LineWidth',2);
-
-    %plot(t(:,1),GRF_y,'LineWidth',2);
-    hold off
-    xlim([0 time_lim]);
-    %ylim([-120 40]);
-    legend('$joint_x$','$joint_y$','$grav$','$int_x$','$int_y$','$T_{frame}$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
-    xlabel('Time [s]');
-    ylabel('Torque [Nm]');
-    if graph_save == true
-        exportgraphics(gca, [save_path name '_momframe[1].pdf'], 'ContentType', 'vector');
-    end
-
-    %Figure9：body周りのモーメントを表示
-    figure(9)
-    axes1 = axes('Parent',gcf);
-    %plot(phi(:,2),musclelength(:,1),'LineWidth',2);
-    hold on
-    plot(phi(:,2),(musclelength(:,2)-l_muscle_list(1))*1000,'LineWidth',2);
-    plot(phi(:,2),(musclelength(:,3)-l_muscle_list(3))*1000,'LineWidth',2);
-    plot(phi(:,2),(musclelength(:,4)-l_muscle_list(2))*1000,'LineWidth',2);
-    %plot(phi(:,2),musclelength(:,5),'LineWidth',2);
-
-    %plot(t(:,1),GRF_y,'LineWidth',2);
-    hold off
-    
-    xlim([-3.2 3.2]);
-    xticklabels({'-\pi','-\pi/2','0','\pi/2','\pi'})
-    set(axes1,'FontName','Times New Roman','FontSize',26,'XGrid','off','XTick',[-pi -pi/2 0 pi/2 pi]);
-    ylim([-1 1]);
-    legend('$Ci$','$GEo$','$CFLT$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
-    xlabel('Angle [rad]');
-    ylabel('dLength [mm]');
-    if graph_save == true
-        exportgraphics(gca, [save_path name '_musclelength[1].pdf'], 'ContentType', 'vector');
-    end
-
-    %Figure10：力による各関節周りのモーメントを表示
-    figure(10)
-    plot(t(:,1),M_connect(:,32),'LineWidth',2);
-    
-    hold on
-    plot(t(:,1),M_connect(:,33),'LineWidth',2);
-    plot(t(:,1),M_connect(:,34),'LineWidth',2);
-    plot(t(:,1),M_connect(:,35),'LineWidth',2);
-
-    %plot(t(:,1),GRF_y,'LineWidth',2);
-    hold off
-    xlim([0 time_lim]);
-    %ylim([-120 40]);
-    legend('$ankle$','$knee$','$hip$','$body$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
-    xlabel('Time [s]');
-    ylabel('Torque [Nm]');
-    if graph_save == true
-        exportgraphics(gca, [save_path name '_momforce[1].pdf'], 'ContentType', 'vector');
-    end
-
-    %Figure11：つま先周りのモーメントを表示
-    figure(11)
-    plot(t(:,1),M_connect(:,36),'LineWidth',2);
-    
-    hold on
-    plot(t(:,1),M_connect(:,37),'LineWidth',2);
-
-    %plot(t(:,1),GRF_y,'LineWidth',2);
-    hold off
-    xlim([0 time_lim]);
-    %ylim([-120 40]);
-    legend('$clock$','$unclock$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
-    xlabel('Time [s]');
-    ylabel('Torque [Nm]');
-    if graph_save == true
-        exportgraphics(gca, [save_path name '_momtoe[1].pdf'], 'ContentType', 'vector');
-    end
-    %Figure12：つま先周りのモーメントを表示
-    figure(12)
-    plot(t(:,1),M_connect(:,38),'LineWidth',2);
-    
-    hold on
-    plot(t(:,1),M_connect(:,39),'LineWidth',2);
-
-    %plot(t(:,1),GRF_y,'LineWidth',2);
-    hold off
-    xlim([0 time_lim]);
-    %ylim([-120 40]);
-    legend('$clock$','$unclock$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
-    xlabel('Time [s]');
-    ylabel('Torque [Nm]');
-    if graph_save == true
-        exportgraphics(gca, [save_path name '_momtoe[2].pdf'], 'ContentType', 'vector');
-    end
+    % %Figure5：knee周りのモーメントを表示
+    % figure(5)
+    % plot(t(:,1),M_connect(:,11),'LineWidth',2);
+    % hold on
+    % plot(t(:,1),M_connect(:,12),'LineWidth',2);
+    % plot(t(:,1),M_connect(:,13),'LineWidth',2);
+    % plot(t(:,1),M_connect(:,14),'LineWidth',2);
+    % plot(t(:,1),M_connect(:,15),'LineWidth',2);
+    % %plot(t(:,1),M_connect(:,11)+M_connect(:,12)+M_connect(:,13)+M_connect(:,14)+M_connect(:,15),'LineWidth',2);
+    % %plot(t(:,1),GRF_y,'LineWidth',2);
+    % hold off
+    % xlim([0 time_lim]);
+    % %ylim([-120 40]);
+    % legend('$joint_x$','$joint_y$','$grav$','$int_x$','$int_y$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
+    % xlabel('Time [s]');
+    % ylabel('Torque [Nm]');
+    % if graph_save == true
+    %     exportgraphics(gca, [save_path name '_momknee[1].pdf'], 'ContentType', 'vector');
+    % end
+    % %Figure6：hip周りのモーメントを表示
+    % figure(6)
+    % plot(t(:,1),M_connect(:,16),'LineWidth',2);
+    % hold on
+    % plot(t(:,1),M_connect(:,17),'LineWidth',2);
+    % plot(t(:,1),M_connect(:,18),'LineWidth',2);
+    % plot(t(:,1),M_connect(:,19),'LineWidth',2);
+    % plot(t(:,1),M_connect(:,20),'LineWidth',2);
+    % %plot(t(:,1),GRF_y,'LineWidth',2);
+    % hold off
+    % xlim([0 time_lim]);
+    % ylim([-2 12]);
+    % legend('$joint_x$','$joint_y$','$grav$','$int_x$','$int_y$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
+    % xlabel('Time [s]');
+    % ylabel('Torque [Nm]');
+    % if graph_save == true
+    %     exportgraphics(gca, [save_path name '_momhip[1].pdf'], 'ContentType', 'vector');
+    % end
+    % 
+    % %Figure7：hip周りのモーメントを表示2
+    % figure(7)
+    % plot(t(:,1),M_connect(:,21),'LineWidth',2);
+    % hold on
+    % plot(t(:,1),M_connect(:,22),'LineWidth',2);
+    % plot(t(:,1),M_connect(:,23),'LineWidth',2);
+    % plot(t(:,1),M_connect(:,24),'LineWidth',2);
+    % %plot(t(:,1),GRF_y,'LineWidth',2);
+    % hold off
+    % xlim([0 time_lim]);
+    % ylim([-12 2]);
+    % legend('$FCi_x$','$FCi_y$','$FGEo_x$','$FGEo_y$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
+    % xlabel('Time [s]');
+    % ylabel('Torque [Nm]');
+    % if graph_save == true
+    %     exportgraphics(gca, [save_path name '_momhip[2].pdf'], 'ContentType', 'vector');
+    % end
+    % %Figure8：body周りのモーメントを表示
+    % figure(8)
+    % plot(t(:,1),M_connect(:,25),'LineWidth',2);
+    % 
+    % hold on
+    % plot(t(:,1),M_connect(:,26),'LineWidth',2);
+    % plot(t(:,1),M_connect(:,27),'LineWidth',2);
+    % plot(t(:,1),M_connect(:,28),'LineWidth',2);
+    % plot(t(:,1),M_connect(:,29),'LineWidth',2);
+    % plot(t(:,1),data_T_all(:,91),'LineWidth',2);
+    % 
+    % %plot(t(:,1),GRF_y,'LineWidth',2);
+    % hold off
+    % xlim([0 time_lim]);
+    % %ylim([-120 40]);
+    % legend('$joint_x$','$joint_y$','$grav$','$int_x$','$int_y$','$T_{frame}$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
+    % xlabel('Time [s]');
+    % ylabel('Torque [Nm]');
+    % if graph_save == true
+    %     exportgraphics(gca, [save_path name '_momframe[1].pdf'], 'ContentType', 'vector');
+    % end
+    % 
+    % %Figure9：body周りのモーメントを表示
+    % figure(9)
+    % axes1 = axes('Parent',gcf);
+    % %plot(phi(:,2),musclelength(:,1),'LineWidth',2);
+    % hold on
+    % plot(phi(:,2),(musclelength(:,2)-l_muscle_list(1))*1000,'LineWidth',2);
+    % plot(phi(:,2),(musclelength(:,3)-l_muscle_list(3))*1000,'LineWidth',2);
+    % plot(phi(:,2),(musclelength(:,4)-l_muscle_list(2))*1000,'LineWidth',2);
+    % %plot(phi(:,2),musclelength(:,5),'LineWidth',2);
+    % 
+    % %plot(t(:,1),GRF_y,'LineWidth',2);
+    % hold off
+    % 
+    % xlim([-3.2 3.2]);
+    % xticklabels({'-\pi','-\pi/2','0','\pi/2','\pi'})
+    % set(axes1,'FontName','Times New Roman','FontSize',26,'XGrid','off','XTick',[-pi -pi/2 0 pi/2 pi]);
+    % ylim([-1 1]);
+    % legend('$Ci$','$GEo$','$CFLT$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
+    % xlabel('Angle [rad]');
+    % ylabel('dLength [mm]');
+    % if graph_save == true
+    %     exportgraphics(gca, [save_path name '_musclelength[1].pdf'], 'ContentType', 'vector');
+    % end
+    % 
+    % %Figure10：力による各関節周りのモーメントを表示
+    % figure(10)
+    % plot(t(:,1),M_connect(:,32),'LineWidth',2);
+    % 
+    % hold on
+    % plot(t(:,1),M_connect(:,33),'LineWidth',2);
+    % plot(t(:,1),M_connect(:,34),'LineWidth',2);
+    % plot(t(:,1),M_connect(:,35),'LineWidth',2);
+    % 
+    % %plot(t(:,1),GRF_y,'LineWidth',2);
+    % hold off
+    % xlim([0 time_lim]);
+    % %ylim([-120 40]);
+    % legend('$ankle$','$knee$','$hip$','$body$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
+    % xlabel('Time [s]');
+    % ylabel('Torque [Nm]');
+    % if graph_save == true
+    %     exportgraphics(gca, [save_path name '_momforce[1].pdf'], 'ContentType', 'vector');
+    % end
+    % 
+    % %Figure11：つま先周りのモーメントを表示
+    % figure(11)
+    % plot(t(:,1),M_connect(:,36),'LineWidth',2);
+    % 
+    % hold on
+    % plot(t(:,1),M_connect(:,37),'LineWidth',2);
+    % 
+    % %plot(t(:,1),GRF_y,'LineWidth',2);
+    % hold off
+    % xlim([0 time_lim]);
+    % ylim([-1 8]);
+    % legend('$clock$','$unclock$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
+    % xlabel('Time [s]');
+    % ylabel('Torque [Nm]');
+    % if graph_save == true
+    %     exportgraphics(gca, [save_path name '_momtoe[1].pdf'], 'ContentType', 'vector');
+    % end
+    % %Figure12：つま先周りのモーメントを表示
+    % figure(12)
+    % plot(t(:,1),M_connect(:,38),'LineWidth',2);
+    % 
+    % hold on
+    % plot(t(:,1),M_connect(:,39),'LineWidth',2);
+    % 
+    % %plot(t(:,1),GRF_y,'LineWidth',2);
+    % hold off
+    % xlim([0 time_lim]);
+    % %ylim([-120 40]);
+    % legend('$clock$','$unclock$','Interpreter', 'latex', 'FontSize',12,'Location','northeast');
+    % xlabel('Time [s]');
+    % ylabel('Torque [Nm]');
+    % if graph_save == true
+    %     exportgraphics(gca, [save_path name '_momtoe[2].pdf'], 'ContentType', 'vector');
+    % end
 
     
 

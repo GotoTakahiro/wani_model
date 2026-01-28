@@ -1,9 +1,9 @@
 % clear;
  close all;
 % clearvars
+addpath('/Users/goto/Documents/Matlab/crocodile_sim');
 
-addpath('/Users/goto/Documents/Matlab/crocodile_sim_PID-main');
-load('/Users/goto/Documents/MATLAB/crocodile_sim_PID-main/plot/results/m4/exp20251028_CFL350_Ci44_CFLT100_GEo35_GE185.mat');
+load('/Users/goto/Documents/MATLAB/crocodile_sim/plot/results/noGE/exp20251028noGE_CFL350_Ci44_CFLT100_GEo35_GE185.mat');
 % load('results/20240712_MuscleLengthTest_PID/exp20240712_MuscleLengthTest_PID_1125_P50000_I50_D550_CFL350_Ci44_CFLT107_GEo43_GE200.mat');
 % load('results/20240726_init_condition_test_per2mm/exp20240726_init_condition_test_per2mm_223_Hip20_Knee44_CFL350_Ci44_CFLT107_GEo37_GE188.mat');
 % load('results/20240822_for_nolta_paper_rev/knee83/exp20240822_for_nolta_paper_noGE_knee83_CFL350_Ci44_CFLT100_GEo35_GE185.mat')
@@ -17,8 +17,8 @@ save_path = 'results/';
 new_filename = fullfile([save_path name '.mp4']);
 
 % プロットの設定．
-graph_save = true;
-graph_view = true;
+graph_save = false;
+graph_view = false;
 movie_save = true;
 
 time_lim = max(t(:,1));
@@ -482,7 +482,6 @@ end
 %アニメーションの描写
 if movie_save == true
     disp('Writing movie...')
-
     % ====== 動画出力設定 ======
     v = VideoWriter(new_filename, 'MPEG-4');
     v.Quality = 100;
@@ -497,34 +496,39 @@ if movie_save == true
 
     % ====== Figure 設定 ======
     fig = figure('Color','w');
-    set(fig, 'Units','pixels','Position',[200,200,600,600]); % 正方形の固定ウィンドウ
+    set(fig, 'Units','pixels','Position',[200,200,600,600]); 
     ax = axes('Parent', fig);
     hold(ax, 'on');
+    
+    % --- グリッドと軸（目盛・数字）のカスタマイズ ---
     grid(ax, 'on');
-
-    % 固定軸設定（重要）
+    ax.XGrid = 'off';           % 縦のグリッドをオフ
+    ax.YGrid = 'on';           % 横のグリッドをオン
+    ax.GridLineStyle = '--';    % 点線に設定
+    
+    % 軸の目盛位置を設定
+    ax.XTick = [];              % X軸の目盛を消去
+    ax.YTick = [-0.26, 0];      % Y軸の目盛位置を固定
+    
+    % --- ここで数字（ラベル）を消去 ---
+    ax.XTickLabel = [];         % X軸の数字を非表示
+    ax.YTickLabel = [];         % Y軸の数字を非表示
+    
+    % 固定軸設定
     xlim(ax, [x_lim_neg x_lim_pos]);
     ylim(ax, [y_lim_neg y_lim_pos]);
     axis(ax, 'manual');
-    daspect(ax, [1 1 1]);        % データ単位の縦横比を固定
-    pbaspect(ax, [1 1 1]);       % 表示上のアスペクトも固定
-    axis(ax, 'tight');
+    daspect(ax, [1 1 1]);
+    pbaspect(ax, [1 1 1]);
     box(ax, 'on');
 
-    % % 軸目盛を非表示
-    % ax.XTick = [];
-    % ax.YTick = [];
-    % 
-    % % ====== ground line ======
-    % plot(ax, [x_lim_neg x_lim_pos], [y_fixed(1) y_fixed(1)], ':k', 'LineWidth', 1);
-    % plot(ax, [x_lim_neg x_lim_pos], [y_fixed(2) y_fixed(2)], ':k', 'LineWidth', 1);
-
     nFrames = size(q,1);
+
     % ====== メインループ ======
     for i = 1:size(q,1)
-        % 前フレームの描画を消去（地面は残す）
-        delete(findall(ax, 'Type', 'line', '-not', 'LineStyle', ':'));
-
+        % 前フレームの描画を消去（グリッド以外）
+        delete(findall(ax, 'Type', 'line', '-not', 'LineStyle', '--')); 
+        
         % ---- リンク描画 ----
         plot(ax, [coordinates_x(i,1) coordinates_x(i,2)], [coordinates_y(i,1) coordinates_y(i,2)], '-k', 'LineWidth', 2);
         plot(ax, [coordinates_x(i,2) coordinates_x(i,3)], [coordinates_y(i,2) coordinates_y(i,3)], '-k', 'LineWidth', 2);
@@ -548,29 +552,114 @@ if movie_save == true
         % ---- 重心描写 ----
         plot(ax, COM(i,1), COM(i,2), "o",'MarkerSize', 10,'MarkerFaceColor', 'k','MarkerEdgeColor', 'k');
 
-
-        % ---- 縦横比・表示範囲を固定（フレームごと確認）----
-        xlim(ax, [x_lim_neg x_lim_pos]);
-        ylim(ax, [y_lim_neg y_lim_pos]);
-        daspect(ax, [1 1 1]);
-        pbaspect(ax, [1 1 1]);
-        axis(ax, 'manual');
-
-        % ---- フレーム番号を動画内に表示 ----
-        txt_x = x_lim_neg + 0.02*(x_lim_pos - x_lim_neg);  % 左下に配置
-        txt_y = y_lim_neg + 0.05*(y_lim_pos - y_lim_neg);
-        text(txt_x, txt_y, sprintf('Frame %d / %d', i, nFrames), ...
-            'FontSize', 12, 'Color', [0 0 0], 'FontWeight', 'bold', 'BackgroundColor', [1 1 1 0.6]);
+        % ---- フレーム番号を枠外（タイトル）に表示 ----
+        t = title(ax, sprintf('Frame %d / %d', i, nFrames), 'FontSize', 12, 'FontWeight', 'bold');
+        
+        % タイトルの位置を微調整（現在の位置を取得して、Y方向にプラスする）
+        % 1.05 の部分を大きくすると、より上に離れます
+        pos = get(t, 'Position');
+        pos(2) = y_lim_pos + (y_lim_pos - y_lim_neg) * 0.04; % 枠の上端から範囲の8%分上に配置
+        set(t, 'Position', pos);
 
         % ---- 描画とフレーム取得 ----
         drawnow limitrate;
-        frame = getframe(gcf); % Figure全体をキャプチャ
+        frame = getframe(gcf); 
         writeVideo(v, frame);
     end
-
     close(v);
     disp('Movie saved successfully.');
 end
+% if movie_save == true
+%     disp('Writing movie...')
+% 
+%     % ====== 動画出力設定 ======
+%     v = VideoWriter(new_filename, 'MPEG-4');
+%     v.Quality = 100;
+%     v.FrameRate = 100;
+%     open(v);
+% 
+%     % ====== 表示範囲 ======
+%     x_lim_neg = -0.4;
+%     x_lim_pos =  0.4;
+%     y_lim_neg = -0.4;
+%     y_lim_pos =  0.4;
+% 
+%     % ====== Figure 設定 ======
+%     fig = figure('Color','w');
+%     set(fig, 'Units','pixels','Position',[200,200,600,600]); % 正方形の固定ウィンドウ
+%     ax = axes('Parent', fig);
+%     hold(ax, 'on');
+%     grid(ax, 'on');
+% 
+%     % 固定軸設定（重要）
+%     xlim(ax, [x_lim_neg x_lim_pos]);
+%     ylim(ax, [y_lim_neg y_lim_pos]);
+%     axis(ax, 'manual');
+%     daspect(ax, [1 1 1]);        % データ単位の縦横比を固定
+%     pbaspect(ax, [1 1 1]);       % 表示上のアスペクトも固定
+%     axis(ax, 'tight');
+%     box(ax, 'on');
+% 
+%     % % 軸目盛を非表示
+%     % ax.XTick = [];
+%     % ax.YTick = [];
+%     % 
+%     % % ====== ground line ======
+%     % plot(ax, [x_lim_neg x_lim_pos], [y_fixed(1) y_fixed(1)], ':k', 'LineWidth', 1);
+%     % plot(ax, [x_lim_neg x_lim_pos], [y_fixed(2) y_fixed(2)], ':k', 'LineWidth', 1);
+% 
+%     nFrames = size(q,1);
+%     % ====== メインループ ======
+%     for i = 1:size(q,1)
+%         % 前フレームの描画を消去（地面は残す）
+%         delete(findall(ax, 'Type', 'line', '-not', 'LineStyle', ':'));
+% 
+%         % ---- リンク描画 ----
+%         plot(ax, [coordinates_x(i,1) coordinates_x(i,2)], [coordinates_y(i,1) coordinates_y(i,2)], '-k', 'LineWidth', 2);
+%         plot(ax, [coordinates_x(i,2) coordinates_x(i,3)], [coordinates_y(i,2) coordinates_y(i,3)], '-k', 'LineWidth', 2);
+%         plot(ax, [coordinates_x(i,3) coordinates_x(i,4)], [coordinates_y(i,3) coordinates_y(i,4)], '-k', 'LineWidth', 2);
+%         plot(ax, [coordinates_x(i,4) coordinates_x(i,5)], [coordinates_y(i,4) coordinates_y(i,5)], '-k', 'LineWidth', 2);
+% 
+%         % ---- 筋線描画 ----
+%         plot(ax, [coordinates_x(i,1) coordinates_x(i,6)], [coordinates_y(i,1) coordinates_y(i,6)], '-r', 'LineWidth', 2, 'Color', CFL_Color);
+%         plot(ax, [coordinates_x(i,6) coordinates_x(i,10)], [coordinates_y(i,6) coordinates_y(i,10)], '-r', 'LineWidth', 2, 'Color', Ci_Color);
+%         if noCFLT == false
+%             plot(ax, [coordinates_x(i,6) coordinates_x(i,7)], [coordinates_y(i,6) coordinates_y(i,7)], '-r', 'LineWidth', 2, 'Color', CFLT_Color);
+%         end
+%         plot(ax, [coordinates_x(i,7) coordinates_x(i,11)], [coordinates_y(i,7) coordinates_y(i,11)], '-r', 'LineWidth', 2, 'Color', GEo_Color);
+% 
+%         % ---- プーリ描画 ----
+%         plot(ax, r*cos(phi)+coordinates_x(i,4), r*sin(phi)+coordinates_y(i,4), '-k', 'LineWidth', 2);
+%         if noGE == false
+%             plot(ax, [coordinates_x(i,7) coordinates_x(i,8)], [coordinates_y(i,7) coordinates_y(i,8)], '-r', 'LineWidth', 2, 'Color', GE_Color);
+%         end
+% 
+%         % ---- 重心描写 ----
+%         plot(ax, COM(i,1), COM(i,2), "o",'MarkerSize', 10,'MarkerFaceColor', 'k','MarkerEdgeColor', 'k');
+% 
+% 
+%         % ---- 縦横比・表示範囲を固定（フレームごと確認）----
+%         xlim(ax, [x_lim_neg x_lim_pos]);
+%         ylim(ax, [y_lim_neg y_lim_pos]);
+%         daspect(ax, [1 1 1]);
+%         pbaspect(ax, [1 1 1]);
+%         axis(ax, 'manual');
+% 
+%         % ---- フレーム番号を動画内に表示 ----
+%         txt_x = x_lim_neg + 0.02*(x_lim_pos - x_lim_neg);  % 左下に配置
+%         txt_y = y_lim_neg + 0.05*(y_lim_pos - y_lim_neg);
+%         text(txt_x, txt_y, sprintf('Frame %d / %d', i, nFrames), ...
+%             'FontSize', 12, 'Color', [0 0 0], 'FontWeight', 'bold', 'BackgroundColor', [1 1 1 0.6]);
+% 
+%         % ---- 描画とフレーム取得 ----
+%         drawnow limitrate;
+%         frame = getframe(gcf); % Figure全体をキャプチャ
+%         writeVideo(v, frame);
+%     end
+% 
+%     close(v);
+%     disp('Movie saved successfully.');
+% end
 
 
 % figure()
